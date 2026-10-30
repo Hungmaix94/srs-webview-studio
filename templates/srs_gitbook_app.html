@@ -343,11 +343,29 @@
     }
     .gb-flow-subgraph-title {
       position: absolute;
-      top: 0.3rem;
-      left: 0.65rem;
+      top: -11px;
+      left: 50%;
+      transform: translateX(-50%);
       font-size: 10.5px;
       font-weight: 600;
-      color: var(--gb-muted);
+      color: var(--gb-text);
+      background: var(--gb-bg);
+      border: 1px solid var(--gb-border-strong);
+      border-radius: 9999px;
+      padding: 1px 10px;
+      white-space: nowrap;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+      z-index: 4;
+    }
+    .gb-flow-edges-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+      z-index: 3;
     }
     .gb-flow-node {
       position: absolute;
@@ -902,7 +920,7 @@
         startOnLoad: false,
         theme: "base",
         securityLevel: "loose",
-        flowchart: { htmlLabels: true, curve: "basis", padding: 14, nodeSpacing: 32, rankSpacing: 40, subGraphTitleMargin: { top: 8, bottom: 16 }, useMaxWidth: true },
+        flowchart: { htmlLabels: true, curve: "basis", padding: 18, nodeSpacing: 68, rankSpacing: 58, subGraphTitleMargin: { top: 14, bottom: 26 }, useMaxWidth: true },
         sequence: { useMaxWidth: true, boxMargin: 10, messageMargin: 28 },
         themeVariables: isDark ? {
           fontFamily: "'IBM Plex Sans', -apple-system, sans-serif",
@@ -1524,12 +1542,86 @@
         try {
           const { svg } = await mermaid.render(`mmd-${Date.now()}-${i}`, rawCode);
           card.innerHTML = `<div class="gb-mermaid-svg-wrap w-full overflow-x-auto flex justify-center">${svg}</div>`;
+          enhanceMermaidSvg(card);
           preNode.replaceWith(card);
         } catch (_) {}
       }
 
       if (isBlockEditMode) {
         decorateEditableBlocks();
+      }
+    }
+
+    function enhanceMermaidSvg(containerEl) {
+      if (!containerEl) return;
+      const svg = containerEl.querySelector("svg");
+      if (!svg) return;
+      const rootG = svg.querySelector("g.root") || svg.querySelector("g");
+      if (!rootG) return;
+
+      const clusters = Array.from(svg.querySelectorAll("g.cluster"));
+      if (!clusters.length) return;
+
+      let topBadgeLayer = rootG.querySelector("g.gb-mermaid-cluster-badges");
+      if (!topBadgeLayer) {
+        topBadgeLayer = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        topBadgeLayer.setAttribute("class", "gb-mermaid-cluster-badges");
+        rootG.appendChild(topBadgeLayer);
+      }
+
+      let minTopY = Infinity;
+      clusters.forEach((clusterG) => {
+        const rect = clusterG.querySelector("rect");
+        const lblG = clusterG.querySelector("g.cluster-label");
+        if (rect) {
+          rect.setAttribute("rx", "10");
+          rect.setAttribute("ry", "10");
+        }
+        if (rect && lblG) {
+          const rx = parseFloat(rect.getAttribute("x") || "0");
+          const ry = parseFloat(rect.getAttribute("y") || "0");
+          const rw = parseFloat(rect.getAttribute("width") || "0");
+          const fo = lblG.querySelector("foreignObject");
+          if (fo) {
+            const rawText = (fo.textContent || "").trim();
+            const origW = parseFloat(fo.getAttribute("width") || "120");
+            const foW = Math.max(origW + 14, rawText.length * 5.6 + 20);
+            const foH = 24;
+            fo.setAttribute("width", String(foW));
+            fo.setAttribute("height", String(foH));
+            fo.style.overflow = "visible";
+            const newX = rx + (rw - foW) / 2;
+            const newY = ry - 12;
+            if (newY < minTopY) minTopY = newY;
+            lblG.setAttribute("transform", `translate(${newX}, ${newY})`);
+            const innerDiv = fo.querySelector("div");
+            if (innerDiv) {
+              innerDiv.style.display = "inline-flex";
+              innerDiv.style.alignItems = "center";
+              innerDiv.style.justifyContent = "center";
+              innerDiv.style.padding = "1px 9px";
+              innerDiv.style.borderRadius = "9999px";
+              innerDiv.style.background = "var(--gb-bg)";
+              innerDiv.style.border = "1px solid var(--gb-border-strong)";
+              innerDiv.style.fontSize = "10.5px";
+              innerDiv.style.fontWeight = "600";
+              innerDiv.style.color = "var(--gb-text)";
+              innerDiv.style.whiteSpace = "nowrap";
+              innerDiv.style.boxShadow = "0 1px 2px rgba(15, 23, 42, 0.06)";
+            }
+          }
+          topBadgeLayer.appendChild(lblG);
+        }
+      });
+
+      const vb = (svg.getAttribute("viewBox") || "").trim().split(/[\s,]+/).map(Number);
+      if (vb.length === 4 && !vb.some(isNaN) && minTopY < Infinity) {
+        const [vx, vy, vw, vh] = vb;
+        const desiredMinY = minTopY - 6;
+        if (desiredMinY < vy) {
+          const delta = vy - desiredMinY;
+          svg.setAttribute("viewBox", `${vx} ${desiredMinY} ${vw} ${vh + delta}`);
+        }
       }
     }
 
@@ -2147,21 +2239,22 @@
           });
         });
       } else {
-        let curY = 38;
+        let curY = 46;
         let prevSg = null;
         sortedRanks.forEach((r, rowIdx) => {
           const rowNodes = layers.get(r);
           const rowSg = rowNodes[0] ? rowNodes[0].subgraphId : null;
           if (rowIdx > 0) {
-            curY += (rowSg !== prevSg && (rowSg || prevSg)) ? 104 : 74;
+            curY += (rowSg !== prevSg && (rowSg || prevSg)) ? 124 : 84;
           }
           prevSg = rowSg;
-          const totalW = rowNodes.length * nodeW + (rowNodes.length - 1) * 32;
+          const colGap = 56;
+          const totalW = rowNodes.length * nodeW + (rowNodes.length - 1) * colGap;
           const startX = Math.max(36, Math.round((700 - totalW) / 2));
           rowNodes.forEach((n, colIdx) => {
             n.w = nodeW;
             n.h = nodeH;
-            n.x = startX + colIdx * (nodeW + 32);
+            n.x = startX + colIdx * (nodeW + colGap);
             n.y = curY;
           });
         });
@@ -2232,10 +2325,21 @@
 
     function buildBezierPath(x1, y1, x2, y2, dir) {
       if (dir === "LR") {
-        const dx = Math.max(40, Math.abs(x2 - x1) * 0.45);
+        const dist = Math.abs(x2 - x1);
+        const dx = Math.max(12, Math.min(48, dist * 0.42));
         return `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
       }
-      const dy = Math.max(36, Math.abs(y2 - y1) * 0.45);
+      const dist = Math.abs(y2 - y1);
+      const dy = Math.max(12, Math.min(48, dist * 0.42));
+      if (Math.abs(x2 - x1) > 12 && y2 > y1 + 40) {
+        const convergingToCenter = Math.abs(x1 - 350) >= Math.abs(x2 - 350);
+        if (convergingToCenter) {
+          const midDropY = Math.min(y2 - 22, y1 + Math.round((y2 - y1) * 0.52));
+          return `M ${x1} ${y1} L ${x1} ${midDropY} C ${x1} ${y2 - 6}, ${x2} ${y2 - 22}, ${x2} ${y2}`;
+        }
+        const spreadY = Math.min(y2 - 12, y1 + Math.round((y2 - y1) * 0.48));
+        return `M ${x1} ${y1} C ${x1} ${y1 + 20}, ${x2} ${spreadY - 18}, ${x2} ${spreadY} L ${x2} ${y2}`;
+      }
       return `M ${x1} ${y1} C ${x1} ${y1 + dy}, ${x2} ${y2 - dy}, ${x2} ${y2}`;
     }
 
@@ -2258,10 +2362,10 @@
       if (!stage || !graph) return;
 
       let maxX = 720;
-      let maxY = 520;
+      let maxY = 540;
       graph.nodes.forEach((n) => {
         if (n.x + 220 > maxX) maxX = n.x + 220;
-        if (n.y + 90 > maxY) maxY = n.y + 90;
+        if (n.y + 96 > maxY) maxY = n.y + 96;
       });
       stage.style.width = `${maxX}px`;
       stage.style.height = `${maxY}px`;
@@ -2270,10 +2374,12 @@
       const sgHtml = (graph.subgraphs || []).map((sg) => {
         const sgNodes = graph.nodes.filter((n) => n.subgraphId === sg.id);
         if (!sgNodes.length) return "";
-        const minX = Math.min(...sgNodes.map((n) => n.x)) - 14;
-        const minY = Math.min(...sgNodes.map((n) => n.y)) - 24;
-        const maxSgX = Math.max(...sgNodes.map((n) => n.x + (n.w || 180))) + 14;
-        const maxSgY = Math.max(...sgNodes.map((n) => n.y + (n.h || 44))) + 12;
+        const rawMinX = Math.min(...sgNodes.map((n) => n.x)) - 20;
+        const rawMaxX = Math.max(...sgNodes.map((n) => n.x + (n.w || 180))) + 20;
+        const minX = graph.direction === "LR" ? rawMinX : Math.min(rawMinX, 224);
+        const maxSgX = graph.direction === "LR" ? rawMaxX : Math.max(rawMaxX, 476);
+        const minY = Math.min(...sgNodes.map((n) => n.y)) - 34;
+        const maxSgY = Math.max(...sgNodes.map((n) => n.y + (n.h || 44))) + 14;
         return `
           <div class="gb-flow-subgraph-box" style="left:${minX}px;top:${minY}px;width:${maxSgX - minX}px;height:${maxSgY - minY}px;">
             <span class="gb-flow-subgraph-title">${sg.title}</span>
@@ -2381,7 +2487,7 @@
 
       stage.innerHTML = `
         ${sgHtml}
-        <svg class="gb-flow-edges-svg absolute inset-0 w-full h-full pointer-events-none" style="z-index:3;">
+        <svg class="gb-flow-edges-svg" width="${maxX}" height="${maxY}" viewBox="0 0 ${maxX} ${maxY}">
           <defs>
             <marker id="gb-flow-arrow-${idx}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981"></path>
@@ -2740,9 +2846,7 @@
         };
       }
       const g = parseMermaidToFlowGraph(rawCode);
-      if (g.nodes.length > 0) {
-        g.selectedNodeId = g.nodes[0].id;
-      }
+      g.selectedNodeId = null;
       flowCanvasStates[idx] = g;
       renderFlowCanvas(idx);
     }
@@ -2765,6 +2869,7 @@
       try {
         const { svg } = await mermaid.render(`mmd-live-${Date.now()}-${idx}`, ta.value.trim());
         previewEl.innerHTML = svg;
+        enhanceMermaidSvg(previewEl);
       } catch (_) {}
     }
 
@@ -2782,6 +2887,7 @@
       try {
         const { svg } = await mermaid.render(`mmd-saved-${Date.now()}-${idx}`, newCode);
         card.innerHTML = `<div class="gb-mermaid-svg-wrap w-full overflow-x-auto flex justify-center">${svg}</div>`;
+        enhanceMermaidSvg(card);
       } catch (_) {}
 
       decorateEditableBlocks();

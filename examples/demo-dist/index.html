@@ -1,0 +1,3121 @@
+<!DOCTYPE html>
+<html lang="vi" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SRS WebView Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gb-bg: #ffffff;
+      --gb-surface: #f8fafc;
+      --gb-sidebar: #fbfcfd;
+      --gb-border: #eef2f6;
+      --gb-border-strong: #dce3ec;
+      --gb-text: #0f172a;
+      --gb-muted: #526071;
+      --gb-accent: #047857;
+      --gb-accent-bg: rgba(4, 120, 87, 0.08);
+    }
+    html.dark {
+      --gb-bg: #0b0e14;
+      --gb-surface: #121722;
+      --gb-sidebar: #0e121a;
+      --gb-border: #1e2636;
+      --gb-border-strong: #2d384d;
+      --gb-text: #f1f5f9;
+      --gb-muted: #94a3b8;
+      --gb-accent: #34d399;
+      --gb-accent-bg: rgba(52, 211, 153, 0.12);
+    }
+    * { box-sizing: border-box; }
+    ::selection {
+      background: rgba(16, 185, 129, 0.22);
+      color: var(--gb-text);
+    }
+    :focus-visible {
+      outline: 2px solid var(--gb-accent);
+      outline-offset: 2px;
+    }
+    body {
+      font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--gb-bg);
+      color: var(--gb-text);
+      margin: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    code, pre, .font-mono {
+      font-family: 'IBM Plex Mono', monospace;
+    }
+    .gb-border { border-color: var(--gb-border); }
+    .gb-border-strong { border-color: var(--gb-border-strong); }
+    .gb-surface { background: var(--gb-surface); padding: 0.55rem 0.85rem; }
+    #gb-search-input { padding-left: 2.25rem; padding-right: 1rem; }
+    .gb-header {
+      background: color-mix(in srgb, var(--gb-bg) 94%, transparent);
+      color: var(--gb-text);
+    }
+
+    /* Custom subtle scrollbars */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.28); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.48); }
+
+    /* GitBook Sidebar Navigation Items */
+    .gb-nav-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0.44rem 0.65rem;
+      border-radius: 0.5rem;
+      font-size: 0.84rem;
+      font-weight: 450;
+      color: var(--gb-muted);
+      transition: background-color 150ms cubic-bezier(0.22, 1, 0.36, 1), color 150ms cubic-bezier(0.22, 1, 0.36, 1);
+      text-align: left;
+      line-height: 1.38;
+      gap: 0.5rem;
+    }
+    .gb-nav-row:hover {
+      background: rgba(148, 163, 184, 0.1);
+      color: var(--gb-text);
+    }
+    .gb-nav-row.active {
+      background: var(--gb-accent-bg);
+      color: var(--gb-accent);
+      font-weight: 600;
+    }
+
+    /* GitBook Prose Styling (Read Mode Craft Floor) */
+    .gb-prose {
+      color: var(--gb-text);
+      font-size: 0.96rem;
+      line-height: 1.72;
+    }
+    .gb-prose > p,
+    .gb-prose > ul,
+    .gb-prose > ol,
+    .gb-prose > blockquote {
+      max-width: 70ch;
+    }
+    .gb-prose h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.22;
+      margin: 0 0 0.9rem 0;
+      text-wrap: balance;
+    }
+    .gb-prose h2 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      letter-spacing: -0.018em;
+      margin: 2.3rem 0 0.75rem 0;
+      padding-bottom: 0.45rem;
+      border-bottom: 1px solid var(--gb-border);
+      scroll-margin-top: 6rem;
+    }
+    .gb-prose h3 {
+      font-size: 1.06rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin: 1.65rem 0 0.55rem 0;
+      scroll-margin-top: 6rem;
+    }
+    .gb-prose h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 1.25rem 0 0.4rem 0;
+    }
+    .gb-prose p { margin: 0 0 1rem 0; }
+    .gb-prose ul, .gb-prose ol {
+      padding-left: 1.35rem;
+      margin: 0 0 1.1rem 0;
+    }
+    .gb-prose li { margin-bottom: 0.35rem; }
+    .gb-prose a {
+      color: var(--gb-accent);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .gb-prose blockquote {
+      border: 1px solid var(--gb-border-strong);
+      background: var(--gb-surface);
+      padding: 0.85rem 1.1rem;
+      border-radius: 0.65rem;
+      margin: 1.15rem 0;
+      font-size: 0.9rem;
+      color: var(--gb-muted);
+    }
+    .gb-prose blockquote strong {
+      color: var(--gb-text);
+    }
+    .gb-prose blockquote p:last-child { margin-bottom: 0; }
+    .gb-doc-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem 1rem;
+      padding: 0.5rem 0.85rem;
+      margin: 0 0 1.4rem 0;
+      border: 1px solid var(--gb-border);
+      background: var(--gb-surface);
+      border-radius: 0.5rem;
+      font-size: 0.78rem;
+      color: var(--gb-muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .gb-table-scroll-wrap {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--gb-border-strong);
+      border-radius: 0.6rem;
+    }
+    .gb-prose table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 0;
+      font-size: 0.84rem;
+      border: 0;
+      font-variant-numeric: tabular-nums;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+    .gb-prose th, .gb-prose td {
+      border-bottom: 1px solid var(--gb-border);
+      border-right: 1px solid var(--gb-border);
+      padding: 0.6rem 0.85rem;
+      text-align: left;
+      vertical-align: top;
+      overflow-wrap: break-word;
+      min-width: 125px;
+    }
+    .gb-prose th:first-child, .gb-prose td:first-child {
+      min-width: 68px;
+      white-space: nowrap;
+    }
+    .gb-prose th:nth-child(2), .gb-prose td:nth-child(2),
+    .gb-prose th:nth-child(3), .gb-prose td:nth-child(3) {
+      min-width: 220px;
+    }
+    .gb-prose th:last-child, .gb-prose td:last-child { border-right: none; }
+    .gb-prose tr:last-child td { border-bottom: none; }
+    .gb-prose th {
+      background: rgba(148, 163, 184, 0.06);
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: var(--gb-muted);
+    }
+    .gb-prose code {
+      background: rgba(148, 163, 184, 0.14);
+      padding: 0.15rem 0.38rem;
+      border-radius: 0.3rem;
+      font-size: 0.83em;
+    }
+    .gb-prose pre {
+      background: #0f172a;
+      color: #f1f5f9;
+      padding: 1rem 1.15rem;
+      border-radius: 0.75rem;
+      overflow-x: auto;
+      margin: 1.15rem 0;
+      border: 1px solid #1e293b;
+    }
+    .gb-prose pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+      font-size: 0.82rem;
+    }
+    .gb-prose hr {
+      border: 0;
+      border-top: 1px solid var(--gb-border);
+      margin: 2rem 0;
+    }
+    .gb-mermaid-card svg {
+      max-width: 100%;
+      height: auto;
+    }
+    .gb-mermaid-card foreignObject {
+      overflow: visible !important;
+    }
+    .gb-mermaid-card .nodeLabel,
+    .gb-mermaid-card .edgeLabel {
+      line-height: 1.4 !important;
+      padding: 2px 4px !important;
+    }
+    .gb-prose .gb-block-editable {
+      position: relative;
+      padding-right: 2.5rem !important;
+      border: 1px dashed transparent;
+      border-radius: 0.5rem;
+      transition: border-color 140ms ease, background-color 140ms ease;
+    }
+    .gb-prose .gb-mermaid-card.gb-block-editable,
+    .gb-prose .gb-table-block.gb-block-editable {
+      padding-right: 1.25rem !important;
+    }
+    .gb-prose .gb-block-editable:hover {
+      border-color: rgba(16, 185, 129, 0.45);
+      background: rgba(16, 185, 129, 0.025);
+    }
+    .gb-prose .gb-block-editing {
+      border: 1.5px solid var(--gb-accent) !important;
+      background: rgba(16, 185, 129, 0.035) !important;
+      padding: 0.75rem 1rem !important;
+      border-radius: 0.65rem !important;
+      outline: none !important;
+    }
+    .gb-block-edit-btn {
+      position: absolute;
+      top: 0.2rem;
+      right: 0.35rem;
+      z-index: 15;
+      width: 1.75rem;
+      height: 1.75rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.45rem;
+      border: 1px solid var(--gb-border-strong);
+      background: var(--gb-bg);
+      color: var(--gb-muted);
+      opacity: 0.75;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+      cursor: pointer;
+      transition: opacity 140ms ease, color 140ms ease, border-color 140ms ease, background-color 140ms ease;
+    }
+    .gb-mermaid-card > .gb-block-edit-btn,
+    .gb-table-block > .gb-block-edit-btn {
+      top: 0.6rem;
+      right: 0.6rem;
+    }
+    .gb-prose .gb-block-editable:hover > .gb-block-edit-btn,
+    .gb-block-edit-btn:hover,
+    .gb-block-edit-btn:focus-visible {
+      opacity: 1;
+      color: var(--gb-accent);
+      border-color: var(--gb-accent);
+      background: var(--gb-accent-soft);
+    }
+    .gb-flow-canvas-viewport {
+      position: relative;
+      width: 100%;
+      height: 560px;
+      overflow: auto;
+      border-radius: 0.75rem;
+      border: 1px solid var(--gb-border-strong);
+      background-color: var(--gb-bg);
+      background-image: radial-gradient(var(--gb-border-strong) 1px, transparent 1px);
+      background-size: 18px 18px;
+      user-select: none;
+      touch-action: pan-x pan-y;
+    }
+    .gb-flow-canvas-stage {
+      position: relative;
+      min-width: 720px;
+      min-height: 540px;
+      transform-origin: 0 0;
+    }
+    .gb-flow-subgraph-box {
+      position: absolute;
+      border: 1px dashed var(--gb-border-strong);
+      background: rgba(148, 163, 184, 0.045);
+      border-radius: 0.75rem;
+      pointer-events: none;
+    }
+    .gb-flow-subgraph-title {
+      position: absolute;
+      top: -11px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--gb-text);
+      background: var(--gb-bg);
+      border: 1px solid var(--gb-border-strong);
+      border-radius: 9999px;
+      padding: 1px 10px;
+      white-space: nowrap;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+      z-index: 4;
+    }
+    .gb-flow-edges-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+      z-index: 3;
+    }
+    .gb-flow-node {
+      position: absolute;
+      width: 180px;
+      min-height: 44px;
+      padding: 0.4rem 0.6rem;
+      border-radius: 0.6rem;
+      border: 1.5px solid #059669;
+      background: var(--gb-bg);
+      color: var(--gb-text);
+      font-size: 11.5px;
+      line-height: 1.3;
+      font-weight: 500;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 5px rgba(15, 23, 42, 0.06);
+      cursor: grab;
+      touch-action: none;
+      transition: box-shadow 120ms ease, border-color 120ms ease;
+      z-index: 5;
+    }
+    .dark .gb-flow-node {
+      background: #064e3b;
+      border-color: #10b981;
+      color: #f1f5f9;
+    }
+    .gb-flow-node.shape-diamond {
+      border-style: dashed;
+      border-radius: 0.85rem;
+    }
+    .gb-flow-node.selected {
+      border-color: #10b981;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+      z-index: 12;
+    }
+    .gb-flow-node:active {
+      cursor: grabbing;
+    }
+    .gb-flow-node-label {
+      width: 100%;
+      outline: none;
+      word-break: break-word;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .gb-flow-node-label[contenteditable="true"] {
+      display: block;
+      -webkit-line-clamp: unset;
+      overflow: visible;
+      background: rgba(16, 185, 129, 0.12);
+      border-radius: 0.3rem;
+      padding: 2px 4px;
+      cursor: text;
+    }
+    .gb-flow-node-toolbar {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 3px;
+      border-radius: 0.5rem;
+      background: #0f172a;
+      color: #f8fafc;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.22);
+      white-space: nowrap;
+      z-index: 20;
+    }
+    .gb-flow-node-toolbar button {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      height: 22px;
+      padding: 0 6px;
+      border-radius: 0.35rem;
+      font-size: 10.5px;
+      font-weight: 500;
+      color: #e2e8f0;
+      transition: background-color 120ms ease, color 120ms ease;
+    }
+    .gb-flow-node-toolbar button:hover {
+      background: rgba(255, 255, 255, 0.14);
+      color: #ffffff;
+    }
+    .gb-flow-node-toolbar button.danger:hover {
+      background: rgba(244, 63, 94, 0.25);
+      color: #fda4af;
+    }
+    .gb-flow-edge-popover {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 5px;
+      border-radius: 0.5rem;
+      background: #0f172a;
+      color: #f8fafc;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.22);
+      z-index: 20;
+    }
+    .gb-flow-handle {
+      position: absolute;
+      width: 11px;
+      height: 11px;
+      border-radius: 9999px;
+      background: #10b981;
+      border: 2px solid var(--gb-bg);
+      cursor: crosshair;
+      touch-action: none;
+      z-index: 9;
+      transition: transform 120ms ease;
+    }
+    .gb-flow-handle:hover {
+      transform: scale(1.35);
+    }
+    .gb-flow-edge-path {
+      fill: none;
+      stroke: #10b981;
+      stroke-width: 1.8px;
+      opacity: 0.82;
+      cursor: pointer;
+      pointer-events: stroke;
+    }
+    .gb-flow-edge-hit {
+      fill: none;
+      stroke: transparent;
+      stroke-width: 14px;
+      cursor: pointer;
+      pointer-events: stroke;
+    }
+    .gb-flow-edge-group.selected .gb-flow-edge-path {
+      stroke: #059669;
+      stroke-width: 2.8px;
+      opacity: 1;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- MINIMALIST GOOGLE OAUTH 2.0 LOGIN MODAL -->
+  <div id="studio-auth-gate" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="relative bg-white dark:bg-[#11151f] border border-slate-200/90 dark:border-slate-800 rounded-2xl max-w-[340px] w-full p-7 shadow-2xl text-center">
+      <!-- Centered Brand Mark -->
+      <div class="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-sm mx-auto mb-4">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        </svg>
+      </div>
+
+      <h2 id="auth-brand-title" class="font-semibold text-base text-slate-900 dark:text-white tracking-tight">SRS WebView Studio</h2>
+      <p id="auth-domain-hint" class="text-xs text-slate-400 mt-1 mb-6">Đăng nhập Google để xem và chỉnh sửa tài liệu</p>
+
+      <div id="studio-auth-error" class="hidden mb-3.5 px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-medium text-left"></div>
+      <div id="studio-auth-success" class="hidden mb-3.5 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-medium text-left"></div>
+
+      <!-- Single Google OAuth 2.0 Button -->
+      <button
+        type="button"
+        id="google-oauth-login-btn"
+        onclick="startGoogleOAuthLogin()"
+        class="w-full h-10 px-4 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 dark:border-slate-700 font-medium text-sm shadow-sm transition flex items-center justify-center gap-2.5"
+      >
+        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/>
+          <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"/>
+          <path fill="#FBBC05" d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"/>
+          <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"/>
+        </svg>
+        <span>Continue with Google</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="sticky top-0 z-30 border-b gb-border gb-header backdrop-blur">
+    <div class="h-14 px-4 lg:px-6 flex items-center justify-between gap-4">
+      <!-- Brand Logo, Title & Section Select -->
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-8 h-8 p-2 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-sm shrink-0">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+        </div>
+        <span id="header-brand-title" class="font-bold text-[15px] tracking-tight whitespace-nowrap">SRS WebView Studio</span>
+        <span id="header-doc-count" class="hidden xl:inline-flex items-center text-xs font-medium text-slate-500 whitespace-nowrap">
+          (Tài liệu)
+        </span>
+
+        <div class="flex items-center gap-1.5 pl-2.5 ml-1 border-l gb-border-strong min-w-0">
+          <div class="relative">
+            <select
+              id="header-section-select"
+              aria-label="Chọn phân hệ tài liệu"
+              onchange="selectSectionTab(Number(this.value))"
+              class="h-9 pl-3 pr-7 py-1 leading-normal rounded-lg border gb-border-strong gb-surface text-xs font-semibold text-emerald-700 dark:text-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer appearance-none max-w-[260px] sm:max-w-[320px]"
+            ></select>
+            <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2" style="top: 0.68rem;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center Pill Search Bar -->
+      <div class="hidden md:flex items-center justify-center flex-1 max-w-md">
+        <div class="relative w-full">
+          <svg class="w-3.5 h-3.5 text-slate-400 absolute left-3.5 top-2.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          </svg>
+          <input
+            id="gb-search-input"
+            type="text"
+            aria-label="Tìm kiếm tài liệu"
+            oninput="handleSearchFilter(this.value)"
+            placeholder="Tìm tài liệu hoặc mã tính năng... (⌘K)"
+            class="w-full pl-9 pr-4 py-2 rounded-full border gb-border-strong gb-surface text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
+      </div>
+
+      <!-- Right User & Utilities -->
+      <div class="flex items-center gap-2 shrink-0">
+        <div id="verified-user-pill" class="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-full border gb-border-strong gb-surface text-xs">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+          <span id="verified-user-email" class="font-medium truncate max-w-[200px]">Chưa đăng nhập</span>
+        </div>
+
+        <button
+          onclick="toggleTheme()"
+          aria-label="Đổi giao diện Sáng / Tối"
+          title="Đổi giao diện Sáng / Tối"
+          class="p-2 rounded-full border gb-border-strong hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+          </svg>
+        </button>
+
+        <button
+          onclick="handleLogout()"
+          id="btn-logout"
+          aria-label="Đăng xuất"
+          title="Đăng xuất"
+          class="text-xs text-slate-500 hover:text-rose-600 px-2.5 py-1.5"
+        >
+          Thoát
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN 3-COLUMN DOCS LAYOUT -->
+  <div class="flex-1 flex max-w-[1600px] w-full mx-auto relative">
+
+    <!-- DOCKED EXPAND BUTTON WHEN LEFT SIDEBAR IS COLLAPSED -->
+    <button
+      id="btn-expand-left-sidebar"
+      type="button"
+      onclick="toggleLeftSidebarPanel()"
+      title="Mở rộng menu danh mục bên trái"
+      aria-label="Mở rộng menu danh mục bên trái"
+      class="hidden fixed left-3 top-[4.25rem] z-20 items-center gap-1.5 px-2.5 py-1.5 rounded-lg border gb-border-strong gb-surface shadow-sm hover:border-emerald-500 text-xs font-medium text-slate-600 dark:text-slate-300"
+    >
+      <svg class="w-3.5 h-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/>
+      </svg>
+      <span>Menu</span>
+    </button>
+
+    <!-- LEFT SIDEBAR: NAVIGATION TREE (280px) -->
+    <aside id="left-sidebar-aside" class="w-72 shrink-0 border-r gb-border hidden lg:flex flex-col h-[calc(100vh-3.5rem)] sticky top-14 overflow-y-auto px-3 py-4">
+      <div class="flex items-center justify-between gap-2 px-2 pb-3 mb-3 border-b gb-border">
+        <span class="text-xs font-semibold text-slate-500">Danh mục tài liệu</span>
+        <div class="flex items-center gap-1">
+          <button
+            id="btn-toggle-all-sidebar"
+            type="button"
+            onclick="toggleAllSidebarFolders()"
+            title="Mở rộng hoặc thu gọn toàn bộ thư mục"
+            class="px-2 py-1 rounded-md border gb-border-strong hover:border-emerald-500 text-[11px] font-medium text-slate-600 dark:text-slate-300"
+          >
+            Mở hết
+          </button>
+          <button
+            id="btn-collapse-left-sidebar"
+            type="button"
+            onclick="toggleLeftSidebarPanel()"
+            title="Thu gọn cột menu bên trái"
+            aria-label="Thu gọn cột menu bên trái"
+            class="p-1 rounded-md border gb-border-strong hover:border-emerald-500 text-slate-500 hover:text-slate-900 dark:hover:text-white"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div id="sidebar-tree-container" class="space-y-4 flex-1"></div>
+    </aside>
+
+    <!-- CENTER: ARTICLE VIEW -->
+    <main id="center-article-main" class="flex-1 min-w-0 overflow-x-hidden px-6 py-9 lg:px-14 lg:py-11 max-w-[840px] mx-auto">
+
+      <!-- Breadcrumb + Actions Row (No uppercase kicker) -->
+      <div class="flex items-center justify-between gap-4 mb-4">
+        <nav aria-label="Breadcrumb" id="article-eyebrow" class="text-xs font-medium text-slate-500 truncate">
+          Tài liệu SRS
+        </nav>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <!-- Copy Markdown Button -->
+          <button
+            onclick="copyCurrentMarkdown()"
+            id="btn-copy-md"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border gb-border-strong hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300"
+          >
+            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+            </svg>
+            <span id="copy-md-label">Sao chép</span>
+          </button>
+
+          <!-- Edit Page Button -->
+          <button
+            onclick="toggleEditPage()"
+            id="btn-edit-md"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border gb-border-strong hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300"
+          >
+            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+            </svg>
+            <span>Chỉnh sửa</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sub-page Tabs when viewing a feature folder (BRD / FSD / Test Spec / Decisions / Open Questions) -->
+      <div id="feature-sibling-tabs" class="mb-6 hidden flex-wrap items-center gap-1.5 p-2 rounded-xl gb-surface border gb-border"></div>
+
+      <!-- Inline Block Edit Mode Banner (Hidden unless Edit Mode is toggled ON) -->
+      <div id="markdown-editor-box" class="mb-6 hidden">
+        <div class="flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl gb-surface border gb-border-strong text-xs">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+            <span class="font-medium truncate">
+              Chế độ sửa theo đoạn: Bấm biểu tượng bút chì ở lề phải mỗi đoạn văn, bảng hoặc sơ đồ để sửa trực tiếp.
+            </span>
+            <span id="edit-save-status" class="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold shrink-0"></span>
+          </div>
+          <div class="flex items-center gap-2 shrink-0 ml-auto">
+            <button onclick="saveEditedMarkdown(false)" id="btn-save-md" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold">
+              Lưu thay đổi
+            </button>
+            <button onclick="toggleEditPage()" class="px-2.5 py-1.5 rounded-lg border gb-border-strong text-slate-600 dark:text-slate-300">
+              Thoát
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading Skeleton -->
+      <div id="doc-loading" class="py-16 text-center text-xs text-slate-400 hidden">
+        Đang tải tài liệu...
+      </div>
+
+      <!-- Rendered Markdown Article -->
+      <article id="gitbook-article" class="gb-prose"></article>
+
+      <!-- Prev / Next Navigation Cards -->
+      <div id="prev-next-nav" class="mt-14 pt-6 border-t gb-border grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+    </main>
+
+    <!-- RIGHT SIDEBAR: MỤC LỤC TRANG (240px) -->
+    <aside id="right-toc-aside" class="w-60 shrink-0 hidden xl:block h-[calc(100vh-3.5rem)] sticky top-14 overflow-y-auto py-6 pr-5">
+      <div class="space-y-4">
+        <div>
+          <div class="flex items-center justify-between gap-1.5 mb-2.5">
+            <span class="text-xs font-semibold text-slate-500">Mục lục trang</span>
+            <div class="flex items-center gap-1">
+              <button
+                id="btn-toggle-all-toc"
+                type="button"
+                onclick="toggleAllTocSections()"
+                title="Thu gọn hoặc mở rộng các mục con trong mục lục trang"
+                class="px-2 py-0.5 rounded-md border gb-border-strong hover:border-emerald-500 text-[11px] font-medium text-slate-600 dark:text-slate-300"
+              >
+                Thu gọn
+              </button>
+              <button
+                id="btn-collapse-right-toc"
+                type="button"
+                onclick="toggleRightTocPanel()"
+                title="Thu gọn cột Mục lục trang"
+                aria-label="Thu gọn cột Mục lục trang"
+                class="p-1 rounded-md border gb-border-strong hover:border-emerald-500 text-slate-500 hover:text-slate-900 dark:hover:text-white"
+              >
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/><path d="m8 9 3 3-3 3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <nav id="toc-scrollspy" class="border-l gb-border-strong space-y-1 text-xs"></nav>
+        </div>
+      </div>
+    </aside>
+
+    <!-- DOCKED EXPAND BUTTON WHEN RIGHT TOC IS COLLAPSED -->
+    <button
+      id="btn-expand-right-toc"
+      type="button"
+      onclick="toggleRightTocPanel()"
+      title="Mở rộng cột Mục lục trang"
+      aria-label="Mở rộng cột Mục lục trang"
+      class="hidden fixed right-3 top-[4.25rem] z-20 items-center gap-1.5 px-2.5 py-1.5 rounded-lg border gb-border-strong gb-surface shadow-sm hover:border-emerald-500 text-xs font-medium text-slate-600 dark:text-slate-300"
+    >
+      <svg class="w-3.5 h-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/><path d="m10 15-3-3 3-3"/>
+      </svg>
+      <span>Mục lục</span>
+    </button>
+  </div>
+
+  <script>
+    window.__SRS_STUDIO_CONFIG__ = window.__SRS_STUDIO_CONFIG__ || {"title": "SRS WebView Studio (Live Demo)", "breadcrumbRoot": "SRS WebView Studio (Live Demo)", "allowedDomain": "*", "authRequired": false, "localUserLabel": "Static WebView", "apiBaseUrl": "", "defaultDocPath": "_index.md", "defaultSectionIndex": 0, "embeddedManifest": {"title": "SRS WebView Studio (Live Demo)", "generated_at": "2026-10-30T08:10:24Z", "groups": [{"id": "sec-1", "title": "I. Tổng quan & Quyết định Kiến trúc", "items": [{"title": "Tổng quan Hệ thống Thương mại Điện tử", "path": "_index.md", "children": []}, {"title": "Quyết định Kiến trúc đã chốt (ADR)", "path": "decisions.md", "children": []}, {"title": "Câu hỏi mở & Điểm chờ chốt", "path": "open-questions.md", "children": []}]}, {"id": "sec-2", "title": "II. Phân hệ Đặt hàng & Thanh toán (Order & Checkout)", "items": [{"title": "1.1-smart-checkout - Đặt hàng nhanh & Giữ tồn kho thời gian thực", "path": "features/1.1-smart-checkout/brd.md", "children": [{"title": "Nghiệp vụ (BRD)", "path": "features/1.1-smart-checkout/brd.md"}, {"title": "Kỹ thuật & API (FSD)", "path": "features/1.1-smart-checkout/fsd.md"}, {"title": "Kịch bản Kiểm thử (Test Spec)", "path": "features/1.1-smart-checkout/test-spec.md"}]}, {"title": "1.2-payment-orchestrator - Điều phối Cổng Thanh toán Đa kênh & Đối soát", "path": "features/1.2-payment-orchestrator/brd.md", "children": [{"title": "Nghiệp vụ (BRD)", "path": "features/1.2-payment-orchestrator/brd.md"}, {"title": "Kỹ thuật & API (FSD)", "path": "features/1.2-payment-orchestrator/fsd.md"}, {"title": "Kịch bản Kiểm thử (Test Spec)", "path": "features/1.2-payment-orchestrator/test-spec.md"}]}]}], "sections": [{"id": "sec-1", "title": "I. Tổng quan & Quyết định Kiến trúc", "items": [{"title": "Tổng quan Hệ thống Thương mại Điện tử", "path": "_index.md", "children": []}, {"title": "Quyết định Kiến trúc đã chốt (ADR)", "path": "decisions.md", "children": []}, {"title": "Câu hỏi mở & Điểm chờ chốt", "path": "open-questions.md", "children": []}]}, {"id": "sec-2", "title": "II. Phân hệ Đặt hàng & Thanh toán (Order & Checkout)", "items": [{"title": "1.1-smart-checkout - Đặt hàng nhanh & Giữ tồn kho thời gian thực", "path": "features/1.1-smart-checkout/brd.md", "children": [{"title": "Nghiệp vụ (BRD)", "path": "features/1.1-smart-checkout/brd.md"}, {"title": "Kỹ thuật & API (FSD)", "path": "features/1.1-smart-checkout/fsd.md"}, {"title": "Kịch bản Kiểm thử (Test Spec)", "path": "features/1.1-smart-checkout/test-spec.md"}]}, {"title": "1.2-payment-orchestrator - Điều phối Cổng Thanh toán Đa kênh & Đối soát", "path": "features/1.2-payment-orchestrator/brd.md", "children": [{"title": "Nghiệp vụ (BRD)", "path": "features/1.2-payment-orchestrator/brd.md"}, {"title": "Kỹ thuật & API (FSD)", "path": "features/1.2-payment-orchestrator/fsd.md"}, {"title": "Kịch bản Kiểm thử (Test Spec)", "path": "features/1.2-payment-orchestrator/test-spec.md"}]}]}], "total_files": 9}, "embeddedDocs": {"_index.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# Tổng quan Hệ thống Thương mại Điện tử (SRS Demo)\n\nChào mừng bạn đến với bản dùng thử công khai của **SRS WebView Studio** (`srs-webview-studio`). Bạn có thể bấm nút **Chỉnh sửa** ở góc trên bên phải bài viết để trải nghiệm sửa văn bản theo từng đoạn (`Per-Block WYSIWYG`) và kéo thả sơ đồ luồng trực quan (`Interactive Flow Canvas`).\n\n## 1. Sơ đồ kiến trúc tổng thể\n\n### Luồng tương tác giữa các phân hệ\n\n```mermaid\nflowchart TB\n  subgraph Actors[\"1. Người dùng & Đối tác\"]\n    R1[\"Khách mua hàng (Web / App)\"]\n    R2[\"Vận hành viên & Kế toán\"]\n  end\n\n  subgraph Core[\"2. Chuỗi xử lý đơn hàng trung tâm\"]\n    B1[\"1.1 Giỏ hàng & Giữ tồn kho tạm thời (TTL 15 phút)\"]\n    B2[\"1.2 Điều phối cổng thanh toán QR / Thẻ / Ví\"]\n    B3[\"1.3 Xác nhận đơn & Phát sự kiện xuất kho\"]\n  end\n\n  subgraph Outcome[\"3. Kết quả đầu ra\"]\n    O1[\"Đơn hàng đồng bộ tức thì\"]\n    O2[\"Sổ cái đối soát tự động\"]\n  end\n\n  R1 & R2 --> B1\n  B1 --> B2 --> B3 --> O1 & O2\n```\n\n## 2. Cấu trúc bộ tài liệu chuẩn cho mỗi tính năng\n\nMỗi tính năng trong kho tài liệu được tách thành 3 góc nhìn rõ ràng kèm bảng quyết định kiến trúc:\n\n| Loại tài liệu | Người đọc chính | Nội dung trọng tâm |\n|---|---|---|\n| **Nghiệp vụ (`brd.md`)** | Quản lý sản phẩm, Phân tích nghiệp vụ, Khách hàng | Bối cảnh bài toán, quy tắc nghiệp vụ, luồng người dùng và ví dụ số liệu thực tế |\n| **Kỹ thuật & API (`fsd.md`)** | Lập trình viên Backend, Frontend, Mobile | Mô hình cơ sở dữ liệu, hợp đồng giao tiếp API, sơ đồ tuần tự và cơ chế khóa đồng thời |\n| **Kịch bản Kiểm thử (`test-spec.md`)** | Kỹ sư Kiểm thử (QA) | Các ca kiểm thử chuẩn `Given / When / Then` phủ đủ luồng chính và trường hợp biên |\n| **Quyết định đã chốt (`decisions.md`)** | Toàn bộ đội dự án | Lưu vết quyết định, lý do lựa chọn ([D01](decisions.md), [D02](decisions.md), [D03](decisions.md)) và các phương án đã bác bỏ |\n\n## 3. Hướng dẫn thử nghiệm nhanh trên trang Demo này\n\n1. **Đóng/mở mục lục linh hoạt**: Bấm nút `Thu gọn / Mở hết` hoặc biểu tượng ẩn cột trên thanh **Danh mục tài liệu** (bên trái) và **Mục lục trang** (bên phải).\n2. **Nhảy thẳng tới dòng quyết định**: Bấm vào mã quyết định như [D01](decisions.md) hoặc [D02](decisions.md) để tự động mở bảng quyết định, cuộn tới đúng dòng đó và tô sáng.\n3. **Sửa trực quan từng đoạn và kéo thả sơ đồ**: Bấm nút **Chỉnh sửa**, sau đó bấm biểu tượng bút chì ở góc phải của bất kỳ đoạn văn, bảng biểu hoặc sơ đồ nào để chỉnh sửa trực tiếp.\n", "decisions.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# Quyết định Kiến trúc đã chốt (Architecture Decisions)\n\nBảng dưới đây lưu vết các quyết định nghiệp vụ và kỹ thuật cốt lõi của hệ thống mẫu. Bấm nút **Chỉnh sửa** để thử sửa trực tiếp từng ô trong bảng.\n\n## 1. Bảng quyết định kiến trúc\n\n| Mã | Quyết định đã chốt | Lý do lựa chọn | Phương án khác đã xét | Người chốt | Ngày chốt | Ghi chú áp dụng |\n|---|---|---|---|---|---|---|\n| D01 | **Giữ tồn kho tạm thời bằng khóa nguyên tử trên Redis kèm bản ghi đối chiếu trong PostgreSQL trong 15 phút khi khách bấm Thanh toán.** Nếu sau 15 phút chưa nhận được biên lai thanh toán thành công, tiến trình nền tự động giải phóng tồn kho về giỏ hàng chung. | **(1) Chống bán vượt tồn kho (Overselling)** trong các đợt mở bán Flash Sale có hàng nghìn lượt bấm cùng giây. **(2) Tự động thu hồi hàng giữ chỗ** khi khách thoát trình duyệt ở bước quét mã QR thanh toán mà không làm nghẽn khóa cơ sở dữ liệu chính. | (a) Chỉ trừ tồn kho sau khi thanh toán xong - dẫn tới 2 khách cùng thanh toán thành công cho 1 sản phẩm cuối cùng. (b) Khóa dòng trực tiếp bằng `SELECT FOR UPDATE` xuyên suốt 15 phút chờ khách quét QR - làm cạn kiệt kết nối cơ sở dữ liệu. | Hội đồng Kiến trúc | 2026-10-20 | Áp dụng tại [1.1 BRD](features/1.1-smart-checkout/brd.md) và [1.1 FSD](features/1.1-smart-checkout/fsd.md) |\n| D02 | **Mọi yêu cầu tạo đơn hàng và khởi tạo giao dịch thanh toán bắt buộc truyền khóa chống trùng lặp (`Idempotency-Key` theo chuẩn UUID v4) có hiệu lực 24 giờ.** Khi máy khách gửi lại cùng khóa do mạng chập chờn, máy chủ trả về đúng kết quả của lần xử lý đầu tiên. | Ngăn chặn triệt để lỗi tạo đúp 2 đơn hàng hoặc trừ tiền 2 lần khi người dùng bấm đúp nút *Đặt hàng* trên mạng di động 4G có độ trễ cao. | Chặn bấm nút ở riêng phía giao diện người dùng - không đủ an toàn khi ứng dụng tự động thử lại gói tin mạng hoặc khi có yêu cầu gọi thẳng vào API. | Tech Lead | 2026-10-22 | Áp dụng tại [1.1 FSD](features/1.1-smart-checkout/fsd.md) và [1.2 FSD](features/1.2-payment-orchestrator/fsd.md) |\n| D03 | **Điều phối cổng thanh toán theo mô hình ưu tiên VietQR động làm kênh mặc định, tự động chuyển dự phòng sang cổng Thẻ nội địa / Ví điện tử sau 10 giây nếu cổng chính bảo trì.** | Tối ưu phí giao dịch thấp nhất qua kênh chuyển khoản QR định danh từng đơn hàng và đảm bảo tỷ lệ thanh toán thành công đạt trên 99,5% ngay cả khi một ngân hàng đối tác gặp sự cố. | Gắn cứng một nhà cung cấp cổng thanh toán duy nhất - toàn bộ luồng thanh toán bị gián đoạn khi cổng đó bảo trì định kỳ. | Product Owner | 2026-10-25 | Áp dụng tại [1.2 BRD](features/1.2-payment-orchestrator/brd.md) |\n\n## 2. Ghi chú tra cứu\n\n- Khi một quyết định cũ được thay thế bởi quyết định mới, giữ nguyên dòng cũ và gắn nhãn tham chiếu sang mã quyết định mới để bảo toàn lịch sử đối chiếu.\n", "open-questions.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# Câu hỏi mở & Điểm chờ chốt (Open Questions)\n\nDanh sách các câu hỏi nghiệp vụ đang chờ xác nhận hoặc đã chuyển sang bảng quyết định.\n\n## 1. Danh sách câu hỏi\n\n| Mã | Câu hỏi cần chốt | Phân hệ liên quan | Người phụ trách | Trạng thái | Kết quả / Tham chiếu |\n|---|---|---|---|---|---|\n| Q01 | Thời gian giữ tồn kho cho đơn hàng Flash Sale có cần rút ngắn từ 15 phút xuống 5 phút hay không? | `1.1 Đặt hàng nhanh` | Product Owner | Đã chốt | Giữ thống nhất 15 phút ở giai đoạn 1 theo [D01](decisions.md), cho phép cấu hình động theo từng chiến dịch ở giai đoạn 2 |\n| Q02 | Khi khách hàng thanh toán thừa hoặc thiếu số tiền qua mã chuyển khoản thủ công thì xử lý tự động hay chuyển Kế toán duyệt tay? | `1.2 Điều phối Thanh toán` | Kế toán trưởng | Đang chờ chốt | Đề xuất: lệch dưới 1.000đ tự động ghi nhận hoàn tất; lệch từ 1.000đ trở lên đẩy vào hàng đợi Kế toán hậu kiểm |\n", "features/1.1-smart-checkout/brd.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# 1.1 Đặt hàng nhanh & Giữ tồn kho thời gian thực - BRD\n\n## 1. Bối cảnh & Mục tiêu\n\n### 1.1 Vấn đề nghiệp vụ\n\nTrong các khung giờ cao điểm hoặc chiến dịch khuyến mãi lớn, nhiều khách hàng cùng bấm đặt mua những sản phẩm cuối cùng trong kho. Nếu hệ thống không giữ chỗ tồn kho ngay tại thời điểm tạo đơn mà chờ tới khi cổng thanh toán báo về mới trừ kho, khách hàng đã chuyển tiền có nguy cơ bị hủy đơn do hết hàng.\n\n### 1.2 Giải pháp nghiệp vụ\n\nÁp dụng cơ chế **Giữ tồn kho tạm thời 15 phút** ngay khi khách hàng bấm nút *Đặt hàng* theo quyết định [D01](../../decisions.md) và chống tạo trùng đơn bằng khóa định danh lượt bấm theo [D02](../../decisions.md).\n\n## 2. Sơ đồ luồng nghiệp vụ\n\n### 2.1 Sơ đồ tổng quan luồng đặt hàng\n\n```mermaid\nflowchart TB\n  subgraph Actors[\"1. Vai trò tham gia\"]\n    U1[\"Khách mua hàng\"]\n    U2[\"Hệ thống Quản lý Kho\"]\n  end\n\n  subgraph Flow[\"2. Quy trình đặt hàng & giữ chỗ\"]\n    S1[\"2.1 Kiểm tra điều kiện khuyến mãi & địa chỉ giao\"]\n    S2[\"2.2 Khóa tạm tồn kho 15 phút cho từng mã hàng\"]\n    S3[\"2.3 Sinh mã QR thanh toán & theo dõi thời gian\"]\n    S4[\"2.4 Chốt đơn thành công hoặc thu hồi kho quá hạn\"]\n  end\n\n  subgraph Result[\"3. Kết quả nghiệp vụ\"]\n    R1[\"Đơn hàng xác nhận chính xác 100%\"]\n    R2[\"Không phát sinh bán vượt số lượng tồn\"]\n  end\n\n  U1 & U2 --> S1\n  S1 --> S2 --> S3 --> S4 --> R1 & R2\n```\n\n### 2.2 Quy tắc tính toán & giới hạn\n\n| Hạng mục | Quy tắc áp dụng | Ví dụ minh họa |\n|---|---|---|\n| **Thời gian giữ hàng tối đa** | 15 phút kể từ giây đơn hàng chuyển sang trạng thái *Chờ thanh toán* | Đơn tạo lúc `10:00:00` sẽ hết hạn giữ chỗ lúc `10:15:00` |\n| **Số lượng tối đa mỗi đơn** | Tối đa 20 dòng sản phẩm khác nhau trong một đơn hàng | Giỏ hàng có 5 mẫu áo (mỗi mẫu 2 chiếc) được tính là 5 dòng sản phẩm |\n| **Tự động hoàn tồn kho** | Ngay khi khách bấm *Hủy đơn* hoặc quá 15 phút chưa thanh toán, số lượng giữ tạm được cộng trả lại kho khả dụng | Kho còn 10 chiếc, khách giữ 2 chiếc (còn 8); sau 15 phút không thanh toán kho tự về lại 10 chiếc |\n", "features/1.1-smart-checkout/fsd.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# 1.1 Đặt hàng nhanh & Giữ tồn kho thời gian thực - FSD\n\n## 1. Kiến trúc kỹ thuật & Luồng xử lý\n\n### 1.1 Sơ đồ kiến trúc thành phần\n\n```mermaid\nflowchart LR\n  subgraph Client[\"Tầng Giao diện (Web / App)\"]\n    UI[\"Màn hình Thanh toán & Đếm ngược 15 phút\"]\n  end\n\n  subgraph API[\"Tầng Điều phối API\"]\n    EP[\"POST /api/v1/orders/checkout\"]\n    IDEM[\"Middleware kiểm tra Idempotency-Key\"]\n  end\n\n  subgraph Storage[\"Tầng Lưu trữ & Hàng đợi\"]\n    REDIS[\"Redis Atomic Stock Lock\"]\n    PG[\"PostgreSQL (orders, inventory_reservations)\"]\n  end\n\n  UI --> EP --> IDEM --> REDIS --> PG\n```\n\n### 1.2 Sơ đồ tuần tự xử lý đặt hàng\n\n```mermaid\nsequenceDiagram\n  autonumber\n  actor User as Khách hàng\n  participant API as Checkout API\n  participant Redis as Redis Stock Guard\n  participant DB as PostgreSQL\n\n  User->>API: POST /api/v1/orders/checkout (Idempotency-Key)\n  API->>Redis: DECRBY tồn kho khả dụng (TTL 900s)\n  Redis-->>API: Trả về số dư tồn kho >= 0\n  API->>DB: INSERT orders & inventory_reservations (PENDING)\n  DB-->>API: Trả về order_id & expires_at\n  API-->>User: HTTP 201 Created (kèm thông tin QR thanh toán)\n```\n\n## 2. Đặc tả Hợp đồng API\n\n| Phương thức & Đường dẫn | Đầu vào chính | Phản hồi thành công | Mã lỗi nghiệp vụ |\n|---|---|---|---|\n| `POST /api/v1/orders/checkout` | Header `Idempotency-Key`, mảng `items[{sku, qty}]`, `shipping_address_id` | `201 Created` kèm `order_id`, `status = \"PENDING_PAYMENT\"`, `expires_at` | `409 OUT_OF_STOCK`, `422 INVALID_VOUCHER` |\n| `POST /api/v1/orders/{id}/cancel` | `reason` | `200 OK` kèm trạng thái `CANCELLED` và hoàn lại tồn kho tức thì | `400 ORDER_ALREADY_PAID` |\n", "features/1.1-smart-checkout/test-spec.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# 1.1 Đặt hàng nhanh & Giữ tồn kho thời gian thực - Test Spec\n\n## 1. Danh mục Kịch bản Kiểm thử\n\n### 1.1 Kiểm thử luồng chính và cạnh tranh tồn kho\n\n| Mã ca kiểm thử | Mức độ | Điều kiện đầu (Given) | Thao tác (When) | Kết quả kỳ vọng (Then) |\n|---|---|---|---|---|\n| `TC-1.1-01` | 🟢 Luồng chuẩn | Sản phẩm `SKU-01` còn tồn khả dụng `10` chiếc, khách đã chọn địa chỉ giao hợp lệ | Khách bấm *Đặt hàng* với số lượng `2` chiếc | Tạo đơn `PENDING_PAYMENT` thành công, tồn khả dụng giảm ngay về `8` chiếc và đồng hồ đếm ngược 15 phút bắt đầu chạy |\n| `TC-1.1-02` | 🟡 Trường hợp biên | Khách gửi yêu cầu đặt hàng kèm `Idempotency-Key = K1`, sau đó bấm đúp gửi lại đúng `K1` lần thứ hai | Máy chủ nhận 2 yêu cầu trùng khóa `K1` trong vòng 2 giây | Chỉ tạo duy nhất 1 đơn hàng và chỉ trừ tạm `2` chiếc trong kho; lần gọi thứ hai trả về lại kết quả của đơn đầu tiên |\n| `TC-1.1-03` | 🔴 Luồng lỗi / Cạnh tranh | Sản phẩm `SKU-99` chỉ còn đúng `1` chiếc cuối cùng trong kho | Hai khách hàng `A` và `B` cùng bấm *Đặt hàng* `1` chiếc ở cùng một thời điểm | Đúng 1 người nhận mã `201 Created`, người còn lại nhận thông báo `409 OUT_OF_STOCK` (tồn kho không bao giờ âm) |\n| `TC-1.1-04` | 🟡 Hết hạn giữ chỗ | Đơn hàng đang ở trạng thái `PENDING_PAYMENT` giữ `2` chiếc `SKU-01` | Quá 15 phút khách chưa thanh toán | Hệ thống tự động chuyển đơn sang `EXPIRED` và cộng trả `2` chiếc về lại tồn kho khả dụng |\n", "features/1.2-payment-orchestrator/brd.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# 1.2 Điều phối Cổng Thanh toán Đa kênh & Đối soát - BRD\n\n## 1. Bối cảnh & Mục tiêu\n\nHệ thống cần kết nối nhiều kênh thanh toán (mã VietQR động, thẻ nội địa NAPAS, thẻ quốc tế và ví điện tử) với khả năng tự động chuyển kênh dự phòng khi một đối tác ngân hàng bảo trì theo quyết định [D03](../../decisions.md).\n\n## 2. Sơ đồ luồng điều phối thanh toán\n\n```mermaid\nflowchart TB\n  subgraph Channels[\"1. Kênh thanh toán người dùng chọn\"]\n    C1[\"Quét mã VietQR động\"]\n    C2[\"Thẻ ngân hàng / Ví điện tử\"]\n  end\n\n  subgraph Orchestrator[\"2. Bộ điều phối & Đối soát\"]\n    P1[\"2.1 Sinh mã giao dịch định danh duy nhất\"]\n    P2[\"2.2 Kiểm tra sức khỏe cổng chính & chuyển dự phòng\"]\n    P3[\"2.3 Xác thực chữ ký số Webhook & khớp số tiền\"]\n  end\n\n  subgraph Ledger[\"3. Kết quả hạch toán\"]\n    L1[\"Cập nhật đơn Đã thanh toán tức thì\"]\n    L2[\"Ghi bút toán sổ cái đối soát tự động\"]\n  end\n\n  C1 & C2 --> P1\n  P1 --> P2 --> P3 --> L1 & L2\n```\n", "features/1.2-payment-orchestrator/fsd.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# 1.2 Điều phối Cổng Thanh toán Đa kênh & Đối soát - FSD\n\n## 1. Sơ đồ kiến trúc xử lý Webhook Thanh toán\n\n```mermaid\nflowchart LR\n  GW[\"Cổng Thanh toán Đối tác\"] --> WH[\"POST /api/v1/payments/webhook\"]\n  WH --> SIG[\"Kiểm tra chữ ký HMAC-SHA256\"]\n  SIG --> TX[\"Khóa giao dịch & Cập nhật trạng thái PAID\"]\n  TX --> EVT[\"Phát sự kiện xuất kho & gửi thông báo\"]\n```\n\n## 2. Quy tắc bảo mật & chống ghi đè\n\n1. **Xác thực chữ ký số (`HMAC-SHA256`)**: Mọi thông báo kết quả thanh toán từ đối tác bắt buộc phải khớp chữ ký mật mã và nằm trong cửa sổ thời gian 5 phút.\n2. **Xử lý bất biến một chiều**: Khi đơn hàng đã chuyển sang trạng thái `PAID`, các thông báo trùng lặp đến sau chỉ trả về `200 OK` mà không sinh thêm bút toán mới.\n", "features/1.2-payment-orchestrator/test-spec.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# 1.2 Điều phối Cổng Thanh toán Đa kênh & Đối soát - Test Spec\n\n## 1. Kịch bản kiểm thử thanh toán & đối soát\n\n| Mã ca kiểm thử | Mức độ | Điều kiện đầu (Given) | Thao tác (When) | Kết quả kỳ vọng (Then) |\n|---|---|---|---|---|\n| `TC-1.2-01` | 🟢 Luồng chuẩn | Đơn hàng `ORD-101` cần thanh toán `500.000đ` đang ở trạng thái `PENDING_PAYMENT` | Webhook đối tác gửi biên lai thành công đúng `500.000đ` kèm chữ ký hợp lệ | Đơn hàng chuyển sang `PAID` trong dưới 1 giây, khóa giữ tồn kho chuyển thành xuất kho chính thức |\n| `TC-1.2-02` | 🔴 Bảo mật | Đơn hàng `ORD-101` đang chờ thanh toán | Kẻ tấn công gửi gói tin giả mạo vào `/api/v1/payments/webhook` với chữ ký sai | Hệ thống từ chối với mã `401 Invalid Signature` và ghi nhật ký cảnh báo bảo mật |\n"}};
+    const STUDIO_CONFIG = Object.assign({
+      title: "SRS WebView Studio",
+      breadcrumbRoot: "Tài liệu SRS",
+      allowedDomain: "*",
+      authRequired: false,
+      localUserLabel: "Public Demo",
+      apiBaseUrl: "",
+      googleClientId: "",
+      defaultDocPath: "_index.md",
+      defaultSectionIndex: 0,
+      embeddedManifest: null,
+      embeddedDocs: null,
+      onSaveDoc: null
+    }, window.__SRS_STUDIO_CONFIG__ || {});
+
+    const WORKER_API_BASE = (STUDIO_CONFIG.apiBaseUrl === "__WORKER" + "_API_BASE__")
+      ? ""
+      : String(STUDIO_CONFIG.apiBaseUrl || "").replace(/\/+$/, "");
+    const DEFAULT_GOOGLE_CLIENT_ID = STUDIO_CONFIG.googleClientId;
+    let manifest = { groups: [] };
+    let allComments = [];
+    let currentUserEmail = null;
+    let configuredGoogleClientId = DEFAULT_GOOGLE_CLIENT_ID;
+    let currentDocPath = "_index.md";
+    let currentRawMarkdown = "";
+    let currentSectionIndex = typeof STUDIO_CONFIG.defaultSectionIndex === "number" ? STUDIO_CONFIG.defaultSectionIndex : 1;
+    let expandedFeatures = new Set();
+    let collapsedGroups = new Set();
+    let isLeftSidebarCollapsed = false;
+    let isRightTocCollapsed = false;
+    let currentTocTree = [];
+    let collapsedTocSlugs = new Set();
+    let isBlockEditMode = false;
+    let searchFilter = "";
+
+    function updateMainColumnMaxWidth() {
+      const mainEl = document.getElementById("center-article-main");
+      if (!mainEl) return;
+      mainEl.classList.remove("max-w-[840px]", "max-w-[1060px]", "max-w-[1280px]");
+      if (isLeftSidebarCollapsed && isRightTocCollapsed) {
+        mainEl.classList.add("max-w-[1280px]");
+      } else if (isLeftSidebarCollapsed || isRightTocCollapsed) {
+        mainEl.classList.add("max-w-[1060px]");
+      } else {
+        mainEl.classList.add("max-w-[840px]");
+      }
+    }
+
+    function toggleLeftSidebarPanel() {
+      isLeftSidebarCollapsed = !isLeftSidebarCollapsed;
+      const aside = document.getElementById("left-sidebar-aside");
+      const expandBtn = document.getElementById("btn-expand-left-sidebar");
+      if (aside) {
+        if (isLeftSidebarCollapsed) {
+          aside.classList.remove("lg:flex");
+        } else {
+          aside.classList.add("lg:flex");
+        }
+      }
+      if (expandBtn) {
+        if (isLeftSidebarCollapsed) {
+          expandBtn.classList.remove("hidden");
+          expandBtn.classList.add("inline-flex");
+        } else {
+          expandBtn.classList.add("hidden");
+          expandBtn.classList.remove("inline-flex");
+        }
+      }
+      updateMainColumnMaxWidth();
+    }
+
+    function toggleRightTocPanel() {
+      isRightTocCollapsed = !isRightTocCollapsed;
+      const aside = document.getElementById("right-toc-aside");
+      const expandBtn = document.getElementById("btn-expand-right-toc");
+      if (aside) {
+        if (isRightTocCollapsed) {
+          aside.classList.remove("xl:block");
+        } else {
+          aside.classList.add("xl:block");
+        }
+      }
+      if (expandBtn) {
+        if (isRightTocCollapsed) {
+          expandBtn.classList.remove("hidden");
+          expandBtn.classList.add("inline-flex");
+        } else {
+          expandBtn.classList.add("hidden");
+          expandBtn.classList.remove("inline-flex");
+        }
+      }
+      updateMainColumnMaxWidth();
+    }
+
+    function applyStudioBranding() {
+      const title = STUDIO_CONFIG.title || "SRS Docs Studio";
+      document.title = title;
+      const authTitle = document.getElementById("auth-brand-title");
+      if (authTitle) authTitle.textContent = title;
+      const headerTitle = document.getElementById("header-brand-title");
+      if (headerTitle) headerTitle.textContent = title;
+      const domainHint = document.getElementById("auth-domain-hint");
+      if (domainHint) {
+        domainHint.textContent = (!STUDIO_CONFIG.allowedDomain || STUDIO_CONFIG.allowedDomain === "*")
+          ? "Đăng nhập Google để xem và chỉnh sửa tài liệu"
+          : `Chỉ dành cho thành viên @${STUDIO_CONFIG.allowedDomain}`;
+      }
+      const eyebrow = document.getElementById("article-eyebrow");
+      if (eyebrow && !currentDocPath) {
+        eyebrow.textContent = STUDIO_CONFIG.breadcrumbRoot || title;
+      }
+    }
+
+    function configureMermaidTheme() {
+      const isDark = document.documentElement.classList.contains("dark");
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: "base",
+        securityLevel: "loose",
+        flowchart: { htmlLabels: true, curve: "basis", padding: 18, nodeSpacing: 68, rankSpacing: 58, subGraphTitleMargin: { top: 14, bottom: 26 }, useMaxWidth: true },
+        sequence: { useMaxWidth: true, boxMargin: 10, messageMargin: 28 },
+        themeVariables: isDark ? {
+          fontFamily: "'IBM Plex Sans', -apple-system, sans-serif",
+          fontSize: "13px",
+          primaryColor: "#064e3b",
+          primaryTextColor: "#f1f5f9",
+          primaryBorderColor: "#10b981",
+          lineColor: "#94a3b8",
+          secondaryColor: "#1e293b",
+          tertiaryColor: "#0f172a",
+          clusterBkg: "#121722",
+          clusterBorder: "#334155",
+          edgeLabelBackground: "#1e293b",
+          actorBkg: "#064e3b",
+          actorBorder: "#10b981",
+          actorTextColor: "#f1f5f9",
+          signalColor: "#e2e8f0",
+          signalTextColor: "#f1f5f9"
+        } : {
+          fontFamily: "'IBM Plex Sans', -apple-system, sans-serif",
+          fontSize: "13px",
+          primaryColor: "#ecfdf5",
+          primaryTextColor: "#0f172a",
+          primaryBorderColor: "#059669",
+          lineColor: "#64748b",
+          secondaryColor: "#f8fafc",
+          tertiaryColor: "#f1f5f9",
+          clusterBkg: "#f8fafc",
+          clusterBorder: "#cbd5e1",
+          edgeLabelBackground: "#ffffff",
+          actorBkg: "#ecfdf5",
+          actorBorder: "#059669",
+          actorTextColor: "#0f172a",
+          signalColor: "#334155",
+          signalTextColor: "#0f172a"
+        }
+      });
+    }
+    configureMermaidTheme();
+
+    function isValidStudioDomain(email) {
+      if (!email || typeof email !== "string") return false;
+      const dom = String(STUDIO_CONFIG.allowedDomain || "*").trim();
+      if (!dom || dom === "*") return email.includes("@");
+      const escaped = dom.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return new RegExp(`^[a-z0-9._%+-]+@${escaped}$`, "i").test(email.trim());
+    }
+
+    function showAuthError(msg) {
+      const errBox = document.getElementById("studio-auth-error");
+      const okBox = document.getElementById("studio-auth-success");
+      if (okBox) okBox.classList.add("hidden");
+      if (errBox) {
+        errBox.textContent = msg;
+        errBox.classList.remove("hidden");
+      }
+    }
+
+    function showAuthSuccess(msg) {
+      const errBox = document.getElementById("studio-auth-error");
+      const okBox = document.getElementById("studio-auth-success");
+      if (errBox) errBox.classList.add("hidden");
+      if (okBox) {
+        okBox.textContent = msg;
+        okBox.classList.remove("hidden");
+      }
+    }
+
+    function initGoogleIdentityServices(clientId) {
+      if (clientId) configuredGoogleClientId = clientId;
+      const activeClientId = configuredGoogleClientId || DEFAULT_GOOGLE_CLIENT_ID;
+      const hdDomain = (!STUDIO_CONFIG.allowedDomain || STUDIO_CONFIG.allowedDomain === "*")
+        ? undefined
+        : STUDIO_CONFIG.allowedDomain;
+      const tryInit = () => {
+        if (window.google && window.google.accounts && window.google.accounts.id) {
+          window.google.accounts.id.initialize({
+            client_id: activeClientId,
+            hd: hdDomain,
+            callback: handleGoogleCredentialResponse,
+            ux_mode: "popup",
+            auto_select: false
+          });
+        } else {
+          setTimeout(tryInit, 300);
+        }
+      };
+      tryInit();
+    }
+
+    async function handleGoogleCredentialResponse(response) {
+      if (!response || !response.credential) {
+        showAuthError("Không nhận được ID Token từ Google.");
+        return;
+      }
+      try {
+        const resp = await fetch(`${WORKER_API_BASE}/api/auth/google/verify`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ credential: response.credential })
+        });
+        const data = await resp.json();
+        if (!resp.ok || !data.ok) {
+          showAuthError(data.error || "Xác thực Google OAuth thất bại.");
+          return;
+        }
+        currentUserEmail = data.email;
+        document.getElementById("studio-auth-gate").classList.add("hidden");
+        updateUserBadge();
+        await loadManifestAndInitialDoc();
+      } catch (err) {
+        showAuthError("Lỗi kết nối máy chủ xác thực: " + err.message);
+      }
+    }
+
+    function startGoogleOAuthLogin() {
+      const activeClientId = configuredGoogleClientId || DEFAULT_GOOGLE_CLIENT_ID;
+      window.location.href = `${WORKER_API_BASE}/api/auth/google/login?client_id=${encodeURIComponent(activeClientId)}`;
+    }
+
+    async function checkAuthAndBoot() {
+      applyStudioBranding();
+      const gate = document.getElementById("studio-auth-gate");
+
+      if (STUDIO_CONFIG.authRequired === false || STUDIO_CONFIG.embeddedManifest) {
+        currentUserEmail = STUDIO_CONFIG.localUserLabel || "Public Demo";
+        gate.classList.add("hidden");
+        const logoutBtn = document.getElementById("btn-logout");
+        if (logoutBtn) logoutBtn.classList.add("hidden");
+        updateUserBadge();
+        await loadManifestAndInitialDoc();
+        return;
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const urlAuthErr = params.get("auth_error");
+      if (urlAuthErr) {
+        showAuthError(urlAuthErr);
+      }
+
+      try {
+        const resp = await fetch(`${WORKER_API_BASE}/api/auth/me`, { credentials: "include" });
+        const data = await resp.json();
+        if (data && data.google_client_id) {
+          initGoogleIdentityServices(data.google_client_id);
+        }
+        if (data && data.authenticated && isValidStudioDomain(data.email)) {
+          currentUserEmail = data.email;
+          gate.classList.add("hidden");
+          updateUserBadge();
+          await loadManifestAndInitialDoc();
+          return;
+        }
+      } catch (_) {}
+
+      gate.classList.remove("hidden");
+    }
+
+    async function handleLogout() {
+      currentUserEmail = null;
+      try { await fetch(`${WORKER_API_BASE}/api/auth/logout`, { method: "POST", credentials: "include" }); } catch (_) {}
+      document.getElementById("studio-auth-error").classList.add("hidden");
+      document.getElementById("studio-auth-gate").classList.remove("hidden");
+    }
+
+    function updateUserBadge() {
+      const el = document.getElementById("verified-user-email");
+      if (el) el.textContent = currentUserEmail || "Chưa đăng nhập";
+    }
+
+    async function loadManifestAndInitialDoc() {
+      if (STUDIO_CONFIG.embeddedManifest) {
+        manifest = STUDIO_CONFIG.embeddedManifest;
+      } else {
+        const resp = await fetch(`${WORKER_API_BASE}/api/srs-book/manifest`, {
+          credentials: "include"
+        });
+        if (!resp.ok) {
+          if (STUDIO_CONFIG.authRequired !== false) {
+            document.getElementById("studio-auth-gate").classList.remove("hidden");
+          }
+          return;
+        }
+        const data = await resp.json();
+        manifest = data.manifest || data || { groups: [] };
+        allComments = data.comments || [];
+      }
+
+      const docCountEl = document.getElementById("header-doc-count");
+      if (docCountEl && manifest.total_files) {
+        docCountEl.textContent = `(${manifest.total_files} tài liệu)`;
+      }
+      updateCommentBadges();
+
+      // Expand first feature by default
+      let fallbackFirstPath = "_index.md";
+      if (manifest.groups && manifest.groups.length > 0) {
+        if (currentSectionIndex >= manifest.groups.length) {
+          currentSectionIndex = 0;
+        }
+        const firstGroup = manifest.groups[0];
+        if (firstGroup.items && firstGroup.items.length > 0) {
+          expandedFeatures.add(firstGroup.items[0].path);
+          fallbackFirstPath = firstGroup.items[0].path;
+        }
+      }
+
+      const hashPath = decodeURIComponent((window.location.hash || "").replace(/^#/, ""));
+      const allFlat = getFlatPages();
+      const configuredDefault = STUDIO_CONFIG.defaultDocPath || fallbackFirstPath;
+      const validDefault = allFlat.some((p) => p.path === configuredDefault) ? configuredDefault : fallbackFirstPath;
+      const initialPath = hashPath || validDefault;
+      renderSectionTabs();
+      renderSidebarTree();
+      await openDoc(initialPath);
+    }
+
+    function renderSectionTabs() {
+      const sel = document.getElementById("header-section-select");
+      if (!sel) return;
+      const groups = manifest.groups || [];
+      const tabs = [{ title: "Tất cả phân hệ", idx: -1 }].concat(
+        groups.map((g, i) => ({
+          title: g.title.replace(/^[IVX]+\.\s*/, ""),
+          idx: i
+        }))
+      );
+      sel.innerHTML = tabs.map((t) => {
+        const selectedAttr = currentSectionIndex === t.idx ? " selected" : "";
+        return `<option value="${t.idx}"${selectedAttr}>${t.title}</option>`;
+      }).join("");
+      sel.value = String(currentSectionIndex);
+    }
+
+    function selectSectionTab(idx) {
+      currentSectionIndex = idx;
+      renderSectionTabs();
+      renderSidebarTree();
+      if (idx >= 0 && manifest.groups[idx] && manifest.groups[idx].items && manifest.groups[idx].items.length > 0) {
+        openDoc(manifest.groups[idx].items[0].path);
+      }
+    }
+
+    function formatSidebarTitle(raw) {
+      if (!raw) return "";
+      const s = String(raw).trim();
+      // Match "<num>-<ascii-slug> - <Human Title>" -> "<num> <Human Title>"
+      const m = s.match(/^(\d+(?:\.\d+)*)-[a-z0-9_-]+\s*-\s*(.+)$/i);
+      if (m) {
+        const num = m[1];
+        let rest = m[2].trim();
+        if (rest.startsWith(num + " ") || rest.startsWith(num + "-")) {
+          rest = rest.slice(num.length).replace(/^[\s-]+/, "");
+        }
+        return `${num} ${rest}`;
+      }
+      // Match "<ascii-slug> - <Human Title>" -> "<Human Title>"
+      const m2 = s.match(/^[a-z0-9_-]+\s*-\s*(.+)$/i);
+      if (m2) return m2[1].trim();
+      return s;
+    }
+
+    function formatGroupHeading(raw) {
+      if (!raw) return "";
+      return String(raw).trim().replace(/^[IVX]+\.\s*/i, "");
+    }
+
+    function toggleFeatureExpand(path, ev) {
+      if (ev) ev.stopPropagation();
+      if (expandedFeatures.has(path)) expandedFeatures.delete(path);
+      else expandedFeatures.add(path);
+      renderSidebarTree();
+    }
+
+    function toggleSidebarGroup(groupIdx) {
+      if (collapsedGroups.has(groupIdx)) collapsedGroups.delete(groupIdx);
+      else collapsedGroups.add(groupIdx);
+      renderSidebarTree();
+    }
+
+    function getVisibleFolderPaths() {
+      const groups = manifest.groups || [];
+      const visibleGroups = currentSectionIndex === -1
+        ? groups
+        : groups.filter((_, i) => i === currentSectionIndex);
+      const paths = [];
+      visibleGroups.forEach((g) => {
+        (g.items || []).forEach((item) => {
+          if (item.children && item.children.length > 0) {
+            paths.push(item.path);
+          }
+        });
+      });
+      return paths;
+    }
+
+    function toggleAllSidebarFolders() {
+      const folderPaths = getVisibleFolderPaths();
+      const allExpanded = folderPaths.length > 0 && folderPaths.every((p) => expandedFeatures.has(p)) && collapsedGroups.size === 0;
+      if (allExpanded) {
+        folderPaths.forEach((p) => expandedFeatures.delete(p));
+      } else {
+        collapsedGroups.clear();
+        folderPaths.forEach((p) => expandedFeatures.add(p));
+      }
+      renderSidebarTree();
+    }
+
+    function renderSidebarTree() {
+      const container = document.getElementById("sidebar-tree-container");
+      if (!container) return;
+      const groups = manifest.groups || [];
+      const q = (searchFilter || "").trim().toLowerCase();
+
+      const folderPaths = getVisibleFolderPaths();
+      const allExpanded = folderPaths.length > 0 && folderPaths.every((p) => expandedFeatures.has(p)) && collapsedGroups.size === 0;
+      const toggleAllBtn = document.getElementById("btn-toggle-all-sidebar");
+      if (toggleAllBtn) {
+        toggleAllBtn.textContent = allExpanded ? "Thu gọn" : "Mở hết";
+      }
+
+      const visibleGroups = currentSectionIndex === -1
+        ? groups.map((g, i) => ({ g, i }))
+        : groups.map((g, i) => ({ g, i })).filter(({ i }) => i === currentSectionIndex);
+
+      container.innerHTML = visibleGroups.map(({ g, i: groupIdx }) => {
+        const filteredItems = (g.items || []).filter((item) => {
+          if (!q) return true;
+          const matchParent = item.title.toLowerCase().includes(q) || item.path.toLowerCase().includes(q);
+          const matchChild = (item.children || []).some((c) => c.title.toLowerCase().includes(q) || c.path.toLowerCase().includes(q));
+          return matchParent || matchChild;
+        });
+        if (!filteredItems.length) return "";
+
+        const isGroupCollapsed = !q && collapsedGroups.has(groupIdx);
+
+        const itemsHtml = isGroupCollapsed ? "" : filteredItems.map((item) => {
+          const hasChildren = item.children && item.children.length > 0;
+          const isChildActive = hasChildren && item.children.some((c) => c.path === currentDocPath);
+          const isActive = item.path === currentDocPath || isChildActive;
+          const isExpanded = q.length > 0 || expandedFeatures.has(item.path);
+          const cleanItemTitle = formatSidebarTitle(item.title);
+
+          const iconSvg = hasChildren
+            ? `<svg class="w-3.5 h-3.5 shrink-0 opacity-75" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>`
+            : `<svg class="w-3.5 h-3.5 shrink-0 opacity-75" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>`;
+
+          const chevronSvg = hasChildren
+            ? `<span onclick="toggleFeatureExpand('${item.path}', event)" class="p-0.5 rounded hover:bg-slate-200/60 dark:hover:bg-slate-800 shrink-0 ${isExpanded ? 'rotate-90' : ''}">
+                 <svg class="w-3.5 h-3.5 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+               </span>`
+            : "";
+
+          const childrenHtml = hasChildren && isExpanded
+            ? `<div class="ml-3.5 pl-2.5 border-l gb-border-strong mt-1 space-y-0.5">
+                 ${item.children.map((c) => `
+                   <button
+                     onclick="openDoc('${c.path}')"
+                     class="gb-nav-row text-xs py-1 ${c.path === currentDocPath ? 'active' : ''}"
+                   >
+                     <span class="truncate">${formatSidebarTitle(c.title)}</span>
+                   </button>
+                 `).join("")}
+               </div>`
+            : "";
+
+          return `
+            <div>
+              <button
+                onclick="openDoc('${item.path}'); expandedFeatures.add('${item.path}');"
+                title="${cleanItemTitle}"
+                class="gb-nav-row ${isActive ? 'active' : ''}"
+              >
+                <span class="flex items-center gap-2 min-w-0">
+                  ${iconSvg}
+                  <span class="truncate">${cleanItemTitle}</span>
+                </span>
+                ${chevronSvg}
+              </button>
+              ${childrenHtml}
+            </div>
+          `;
+        }).join("");
+
+        return `
+          <div>
+            <button
+              type="button"
+              onclick="toggleSidebarGroup(${groupIdx})"
+              class="w-full flex items-center justify-between gap-1.5 px-2.5 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800/60 text-[11px] font-semibold text-slate-500 mb-1"
+            >
+              <span class="truncate">${formatGroupHeading(g.title)}</span>
+              <svg class="w-3.5 h-3.5 shrink-0 opacity-60 ${isGroupCollapsed ? '' : 'rotate-90'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+            <div class="space-y-0.5">${itemsHtml}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function getFlatPages() {
+      const list = [];
+      (manifest.groups || []).forEach((g) => {
+        (g.items || []).forEach((item) => {
+          const itemLabel = formatSidebarTitle(item.title);
+          list.push({ title: itemLabel, path: item.path, group: formatGroupHeading(g.title) });
+          (item.children || []).forEach((c) => {
+            if (c.path !== item.path) {
+              list.push({ title: `${itemLabel} - ${formatSidebarTitle(c.title)}`, path: c.path, group: formatGroupHeading(g.title) });
+            }
+          });
+        });
+      });
+      return list;
+    }
+
+    function findParentFeatureItem(docPath) {
+      const groups = manifest.groups || [];
+      for (let gi = 0; gi < groups.length; gi++) {
+        const g = groups[gi];
+        for (const item of g.items || []) {
+          if (item.path === docPath) return { group: g, groupIndex: gi, item };
+          if ((item.children || []).some((c) => c.path === docPath)) {
+            return { group: g, groupIndex: gi, item };
+          }
+        }
+      }
+      return null;
+    }
+
+    async function openDoc(docPath, targetKey = "") {
+      const [cleanDocPath, hashTarget] = String(docPath || "").split("#");
+      const effectiveTarget = targetKey || hashTarget || "";
+      currentDocPath = cleanDocPath.replace(/^\/+/, "");
+      window.location.hash = encodeURIComponent(currentDocPath);
+      if (isBlockEditMode) {
+        isBlockEditMode = false;
+        updateEditModeButtonUI();
+      }
+      document.getElementById("markdown-editor-box").classList.add("hidden");
+
+      const found = findParentFeatureItem(currentDocPath);
+      if (found) {
+        if (currentSectionIndex !== -1 && currentSectionIndex !== found.groupIndex) {
+          currentSectionIndex = found.groupIndex;
+          renderSectionTabs();
+        }
+        expandedFeatures.add(found.item.path);
+        const groupLabel = formatGroupHeading(found.group.title);
+        const itemLabel = formatSidebarTitle(found.item.title);
+        document.getElementById("article-eyebrow").textContent = `${groupLabel}  /  ${itemLabel}`;
+
+        // Render feature sibling tabs (BRD / FSD / Test Spec / Decisions / Open Questions)
+        const tabsEl = document.getElementById("feature-sibling-tabs");
+        if (found.item.children && found.item.children.length > 1) {
+          tabsEl.classList.remove("hidden");
+          tabsEl.classList.add("flex");
+          tabsEl.innerHTML = found.item.children.map((c) => {
+            const active = c.path === currentDocPath;
+            return `
+              <button
+                onclick="openDoc('${c.path}')"
+                class="px-3 py-1.5 rounded-lg text-xs font-medium ${
+                  active
+                    ? "bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 shadow-sm font-semibold"
+                    : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                }"
+              >
+                ${formatSidebarTitle(c.title)}
+              </button>
+            `;
+          }).join("");
+        } else {
+          tabsEl.classList.add("hidden");
+          tabsEl.classList.remove("flex");
+        }
+      }
+
+      renderSidebarTree();
+
+      const loadingEl = document.getElementById("doc-loading");
+      const articleEl = document.getElementById("gitbook-article");
+      loadingEl.classList.remove("hidden");
+      articleEl.innerHTML = "";
+
+      try {
+        if (STUDIO_CONFIG.embeddedDocs && Object.prototype.hasOwnProperty.call(STUDIO_CONFIG.embeddedDocs, currentDocPath)) {
+          loadingEl.classList.add("hidden");
+          currentRawMarkdown = STUDIO_CONFIG.embeddedDocs[currentDocPath] || "";
+        } else {
+          const resp = await fetch(`${WORKER_API_BASE}/api/srs-book/doc?path=${encodeURIComponent(currentDocPath)}`, {
+            credentials: "include"
+          });
+          const data = await resp.json();
+          loadingEl.classList.add("hidden");
+          if (!resp.ok || !data.ok) {
+            articleEl.innerHTML = `<p class="text-sm text-rose-600">${data.error || "Không tìm thấy tài liệu."}</p>`;
+            return;
+          }
+          currentRawMarkdown = data.content || "";
+        }
+        await renderMarkdownIntoArticle(currentRawMarkdown);
+        renderPrevNextCards();
+        if (effectiveTarget) {
+          const normTarget = effectiveTarget.trim().toUpperCase();
+          const matchingCell = Array.from(articleEl.querySelectorAll("td, th")).find(
+            (cell) => (cell.textContent || "").trim().toUpperCase() === normTarget
+          );
+          if (matchingCell) {
+            const tr = matchingCell.closest("tr");
+            matchingCell.scrollIntoView({ behavior: "smooth", block: "center" });
+            if (tr) {
+              tr.style.transition = "background-color 300ms ease";
+              tr.style.backgroundColor = "rgba(5, 150, 105, 0.14)";
+              setTimeout(() => {
+                tr.style.backgroundColor = "";
+              }, 3200);
+            }
+          } else {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        } else {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      } catch (err) {
+        loadingEl.classList.add("hidden");
+        articleEl.innerHTML = `<p class="text-sm text-rose-600">Lỗi tải tài liệu: ${err.message}</p>`;
+      }
+    }
+
+    async function renderMarkdownIntoArticle(md) {
+      const articleEl = document.getElementById("gitbook-article");
+      articleEl.innerHTML = marked.parse(md || "");
+
+      // Transform metadata blockquote (e.g. "Last Updated At: ...") into a clean metadata bar below h1
+      const firstBq = articleEl.querySelector("blockquote");
+      const firstH1 = articleEl.querySelector("h1");
+      if (firstBq && /Last Updated|Updated By|Trạng thái|Phiên bản/i.test(firstBq.textContent || "")) {
+        const metaBar = document.createElement("div");
+        metaBar.className = "gb-doc-meta";
+        metaBar.innerHTML = firstBq.innerHTML.replace(/^<p>|<\/p>$/g, "");
+        firstBq.remove();
+        if (firstH1) {
+          firstH1.insertAdjacentElement("afterend", metaBar);
+        } else {
+          articleEl.prepend(metaBar);
+        }
+      }
+
+      // Wrap top-level tables in .gb-table-block + .gb-table-scroll-wrap so tables never overflow <main> into Right Sidebar
+      const tables = Array.from(articleEl.querySelectorAll(":scope > table"));
+      tables.forEach((tbl) => {
+        const wrap = document.createElement("div");
+        wrap.className = "gb-table-block my-4 max-w-full";
+        const scrollWrap = document.createElement("div");
+        scrollWrap.className = "gb-table-scroll-wrap";
+        tbl.replaceWith(wrap);
+        scrollWrap.appendChild(tbl);
+        wrap.appendChild(scrollWrap);
+      });
+
+      // Intercept internal .md links so clicking them opens inside SPA and scrolls to D53/Q46 rows
+      const links = articleEl.querySelectorAll("a[href]");
+      links.forEach((a) => {
+        const rawHref = a.getAttribute("href") || "";
+        if (rawHref.includes(".md") && !rawHref.startsWith("http")) {
+          const [mdPart, hashPart] = rawHref.split("#");
+          const baseDir = currentDocPath.includes("/")
+            ? currentDocPath.slice(0, currentDocPath.lastIndexOf("/") + 1)
+            : "";
+          const resolved = mdPart.startsWith("/") ? mdPart.slice(1) : normalizePath(baseDir + mdPart);
+          const linkText = (a.textContent || "").trim();
+          const autoKey = hashPart || (/^[DQ]\d+$/i.test(linkText) ? linkText : "");
+          a.dataset.rawHref = rawHref;
+          a.dataset.docPath = resolved;
+          a.setAttribute("href", `#${encodeURIComponent(resolved)}${autoKey ? "#" + autoKey : ""}`);
+          a.onclick = (ev) => {
+            if (isBlockEditMode) return;
+            ev.preventDefault();
+            openDoc(resolved, autoKey);
+          };
+        } else if (rawHref === "#" && /^[DQ]\d+$/i.test((a.textContent || "").trim())) {
+          const targetId = (a.textContent || "").trim();
+          a.onclick = (ev) => {
+            if (isBlockEditMode) return;
+            ev.preventDefault();
+            openDoc(currentDocPath, targetId);
+          };
+        }
+      });
+
+      // Build Right-side "Mục lục trang" hierarchical TOC (H2 -> H3 children) with Expand/Collapse
+      const headings = articleEl.querySelectorAll("h2, h3");
+      currentTocTree = [];
+      collapsedTocSlugs.clear();
+      headings.forEach((h, i) => {
+        const text = (h.textContent || "").trim();
+        const slug = `h-${i}-${text.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+        h.id = slug;
+        const level = h.tagName.toLowerCase();
+        if (level === "h2" || currentTocTree.length === 0) {
+          currentTocTree.push({ slug, text, level: "h2", children: [] });
+        } else {
+          currentTocTree[currentTocTree.length - 1].children.push({ slug, text, level: "h3" });
+        }
+      });
+      renderTocTree();
+
+      // Render Mermaid diagrams into interactive SVG blocks and preserve raw source
+      const mermaidBlocks = articleEl.querySelectorAll("pre code.language-mermaid");
+      for (let i = 0; i < mermaidBlocks.length; i++) {
+        const codeNode = mermaidBlocks[i];
+        const rawCode = (codeNode.textContent || "").trim();
+        const preNode = codeNode.parentElement;
+        const card = document.createElement("div");
+        card.className = "gb-mermaid-card my-6 p-5 rounded-xl border gb-border-strong bg-slate-50/60 dark:bg-slate-900/50 flex justify-center";
+        card.dataset.rawMermaid = rawCode;
+        try {
+          const { svg } = await mermaid.render(`mmd-${Date.now()}-${i}`, rawCode);
+          card.innerHTML = `<div class="gb-mermaid-svg-wrap w-full overflow-x-auto flex justify-center">${svg}</div>`;
+          enhanceMermaidSvg(card);
+          preNode.replaceWith(card);
+        } catch (_) {}
+      }
+
+      if (isBlockEditMode) {
+        decorateEditableBlocks();
+      }
+    }
+
+    function enhanceMermaidSvg(containerEl) {
+      if (!containerEl) return;
+      const svg = containerEl.querySelector("svg");
+      if (!svg) return;
+      const rootG = svg.querySelector("g.root") || svg.querySelector("g");
+      if (!rootG) return;
+
+      const clusters = Array.from(svg.querySelectorAll("g.cluster"));
+      if (!clusters.length) return;
+
+      let topBadgeLayer = rootG.querySelector("g.gb-mermaid-cluster-badges");
+      if (!topBadgeLayer) {
+        topBadgeLayer = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        topBadgeLayer.setAttribute("class", "gb-mermaid-cluster-badges");
+        rootG.appendChild(topBadgeLayer);
+      }
+
+      let minTopY = Infinity;
+      clusters.forEach((clusterG) => {
+        const rect = clusterG.querySelector("rect");
+        const lblG = clusterG.querySelector("g.cluster-label");
+        if (rect) {
+          rect.setAttribute("rx", "10");
+          rect.setAttribute("ry", "10");
+        }
+        if (rect && lblG) {
+          const rx = parseFloat(rect.getAttribute("x") || "0");
+          const ry = parseFloat(rect.getAttribute("y") || "0");
+          const rw = parseFloat(rect.getAttribute("width") || "0");
+          const fo = lblG.querySelector("foreignObject");
+          if (fo) {
+            const rawText = (fo.textContent || "").trim();
+            const origW = parseFloat(fo.getAttribute("width") || "120");
+            const foW = Math.max(origW + 14, rawText.length * 5.6 + 20);
+            const foH = 24;
+            fo.setAttribute("width", String(foW));
+            fo.setAttribute("height", String(foH));
+            fo.style.overflow = "visible";
+            const newX = rx + (rw - foW) / 2;
+            const newY = ry - 12;
+            if (newY < minTopY) minTopY = newY;
+            lblG.setAttribute("transform", `translate(${newX}, ${newY})`);
+            const innerDiv = fo.querySelector("div");
+            if (innerDiv) {
+              innerDiv.style.display = "inline-flex";
+              innerDiv.style.alignItems = "center";
+              innerDiv.style.justifyContent = "center";
+              innerDiv.style.padding = "1px 9px";
+              innerDiv.style.borderRadius = "9999px";
+              innerDiv.style.background = "var(--gb-bg)";
+              innerDiv.style.border = "1px solid var(--gb-border-strong)";
+              innerDiv.style.fontSize = "10.5px";
+              innerDiv.style.fontWeight = "600";
+              innerDiv.style.color = "var(--gb-text)";
+              innerDiv.style.whiteSpace = "nowrap";
+              innerDiv.style.boxShadow = "0 1px 2px rgba(15, 23, 42, 0.06)";
+            }
+          }
+          topBadgeLayer.appendChild(lblG);
+        }
+      });
+
+      const vb = (svg.getAttribute("viewBox") || "").trim().split(/[\s,]+/).map(Number);
+      if (vb.length === 4 && !vb.some(isNaN) && minTopY < Infinity) {
+        const [vx, vy, vw, vh] = vb;
+        const desiredMinY = minTopY - 6;
+        if (desiredMinY < vy) {
+          const delta = vy - desiredMinY;
+          svg.setAttribute("viewBox", `${vx} ${desiredMinY} ${vw} ${vh + delta}`);
+        }
+      }
+    }
+
+    function toggleTocSection(slug, ev) {
+      if (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+      }
+      if (collapsedTocSlugs.has(slug)) collapsedTocSlugs.delete(slug);
+      else collapsedTocSlugs.add(slug);
+      renderTocTree();
+    }
+
+    function toggleAllTocSections() {
+      const expandableSlugs = currentTocTree.filter((item) => item.children && item.children.length > 0).map((item) => item.slug);
+      if (!expandableSlugs.length) return;
+      const allCollapsed = expandableSlugs.every((s) => collapsedTocSlugs.has(s));
+      if (allCollapsed) {
+        collapsedTocSlugs.clear();
+      } else {
+        expandableSlugs.forEach((s) => collapsedTocSlugs.add(s));
+      }
+      renderTocTree();
+    }
+
+    function renderTocTree() {
+      const tocEl = document.getElementById("toc-scrollspy");
+      if (!tocEl) return;
+      const expandableSlugs = currentTocTree.filter((item) => item.children && item.children.length > 0).map((item) => item.slug);
+      const toggleBtn = document.getElementById("btn-toggle-all-toc");
+      if (toggleBtn) {
+        if (!expandableSlugs.length) {
+          toggleBtn.classList.add("hidden");
+        } else {
+          toggleBtn.classList.remove("hidden");
+          const allCollapsed = expandableSlugs.every((s) => collapsedTocSlugs.has(s));
+          toggleBtn.textContent = allCollapsed ? "Mở hết" : "Thu gọn";
+        }
+      }
+
+      if (!currentTocTree.length) {
+        tocEl.innerHTML = `<div class="pl-3 text-[11px] text-slate-400">Không có mục con</div>`;
+        return;
+      }
+
+      tocEl.innerHTML = currentTocTree.map((item, idx) => {
+        const hasChildren = item.children && item.children.length > 0;
+        const isCollapsed = collapsedTocSlugs.has(item.slug);
+        const chevronBtn = hasChildren
+          ? `<button type="button" onclick="toggleTocSection('${item.slug}', event)" class="p-0.5 rounded hover:bg-slate-200/60 dark:hover:bg-slate-800 shrink-0" title="${isCollapsed ? 'Mở rộng mục con' : 'Thu gọn mục con'}">
+               <svg class="w-3 h-3 opacity-60 ${isCollapsed ? '' : 'rotate-90'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+             </button>`
+          : "";
+        const childrenHtml = hasChildren && !isCollapsed
+          ? `<div class="space-y-0.5">
+               ${item.children.map((c) => `
+                 <a
+                   href="#${c.slug}"
+                   class="block py-1 pl-5 -ml-px border-l-2 border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white text-[11px] truncate"
+                   title="${c.text}"
+                 >
+                   ${c.text}
+                 </a>
+               `).join("")}
+             </div>`
+          : "";
+        return `
+          <div>
+            <div class="flex items-center justify-between gap-1 pr-1">
+              <a
+                href="#${item.slug}"
+                title="${item.text}"
+                class="flex-1 min-w-0 py-1 pl-3 -ml-px border-l-2 truncate ${
+                  idx === 0
+                    ? "border-emerald-500 text-emerald-600 dark:text-emerald-400 font-medium"
+                    : "border-transparent text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                }"
+              >
+                ${item.text}
+              </a>
+              ${chevronBtn}
+            </div>
+            ${childrenHtml}
+          </div>
+        `;
+      }).join("");
+    }
+
+    function normalizePath(p) {
+      const parts = p.split("/");
+      const out = [];
+      for (const part of parts) {
+        if (!part || part === ".") continue;
+        if (part === "..") out.pop();
+        else out.push(part);
+      }
+      return out.join("/");
+    }
+
+    function renderPrevNextCards() {
+      const flat = getFlatPages();
+      const idx = flat.findIndex((p) => p.path === currentDocPath);
+      const prev = idx > 0 ? flat[idx - 1] : null;
+      const next = idx >= 0 && idx + 1 < flat.length ? flat[idx + 1] : null;
+      const el = document.getElementById("prev-next-nav");
+      if (!el) return;
+      el.innerHTML = `
+        <div>
+          ${prev ? `
+            <button onclick="openDoc('${prev.path}')" class="w-full p-4 rounded-xl border gb-border-strong hover:border-emerald-500 text-left transition group">
+              <div class="text-[11px] text-slate-400">Trang trước</div>
+              <div class="text-sm font-semibold group-hover:text-emerald-600 mt-0.5 truncate">${prev.title}</div>
+            </button>
+          ` : ""}
+        </div>
+        <div>
+          ${next ? `
+            <button onclick="openDoc('${next.path}')" class="w-full p-4 rounded-xl border gb-border-strong hover:border-emerald-500 text-right transition group">
+              <div class="text-[11px] text-slate-400">Trang tiếp</div>
+              <div class="text-sm font-semibold group-hover:text-emerald-600 mt-0.5 truncate">${next.title}</div>
+            </button>
+          ` : ""}
+        </div>
+      `;
+    }
+
+    function copyCurrentMarkdown() {
+      navigator.clipboard.writeText(currentRawMarkdown || "");
+      const label = document.getElementById("copy-md-label");
+      label.textContent = "Đã sao chép!";
+      setTimeout(() => { label.textContent = "Sao chép"; }, 1500);
+    }
+
+    function updateEditModeButtonUI() {
+      const btn = document.getElementById("btn-edit-md");
+      if (!btn) return;
+      if (isBlockEditMode) {
+        btn.className = "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-600 bg-emerald-600 text-white text-xs font-semibold shadow-sm";
+        btn.querySelector("span").textContent = "Đang chỉnh sửa";
+      } else {
+        btn.className = "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border gb-border-strong hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300";
+        btn.querySelector("span").textContent = "Chỉnh sửa";
+      }
+    }
+
+    function toggleEditPage() {
+      isBlockEditMode = !isBlockEditMode;
+      const box = document.getElementById("markdown-editor-box");
+      box.classList.toggle("hidden", !isBlockEditMode);
+      updateEditModeButtonUI();
+      if (isBlockEditMode) {
+        decorateEditableBlocks();
+      } else {
+        clearEditableBlocks();
+      }
+    }
+
+    function getEditableBlockElements() {
+      const articleEl = document.getElementById("gitbook-article");
+      if (!articleEl) return [];
+      return Array.from(articleEl.children).filter((el) => {
+        if (el.classList.contains("gb-doc-meta")) return false;
+        if (el.classList.contains("gb-wysiwyg-toolbar")) return false;
+        const tag = el.tagName.toLowerCase();
+        return ["h1", "h2", "h3", "h4", "p", "ul", "ol", "blockquote", "pre", "div"].includes(tag);
+      });
+    }
+
+    function decorateEditableBlocks() {
+      const blocks = getEditableBlockElements();
+      blocks.forEach((block, idx) => {
+        block.classList.add("gb-block-editable");
+        block.dataset.blockIdx = String(idx);
+        const existingBtn = block.querySelector(":scope > .gb-block-edit-btn");
+        if (existingBtn) existingBtn.remove();
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "gb-block-edit-btn";
+        btn.title = "Sửa đoạn này";
+        btn.setAttribute("aria-label", "Sửa đoạn này");
+        btn.innerHTML = `
+          <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+          </svg>
+        `;
+        btn.onclick = (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+          activateBlockEditor(idx);
+        };
+        block.appendChild(btn);
+      });
+    }
+
+    function clearEditableBlocks() {
+      const articleEl = document.getElementById("gitbook-article");
+      if (!articleEl) return;
+      articleEl.querySelectorAll(".gb-wysiwyg-toolbar").forEach((t) => t.remove());
+      articleEl.querySelectorAll(".gb-block-edit-btn").forEach((b) => b.remove());
+      articleEl.querySelectorAll(".gb-block-editable, .gb-block-editing").forEach((el) => {
+        el.classList.remove("gb-block-editable", "gb-block-editing");
+        el.removeAttribute("contenteditable");
+        const tbl = el.querySelector("table");
+        if (tbl) tbl.removeAttribute("contenteditable");
+      });
+    }
+
+    function activateBlockEditor(idx) {
+      const blocks = getEditableBlockElements();
+      const block = blocks[idx];
+      if (!block) return;
+
+      // Remove existing edit button on this block while editing
+      const editBtn = block.querySelector(":scope > .gb-block-edit-btn");
+      if (editBtn) editBtn.remove();
+
+      // Case 1: Mermaid diagram block
+      if (block.classList.contains("gb-mermaid-card")) {
+        activateMermaidBlockEditor(block, idx);
+        return;
+      }
+
+      // Case 2: Standard Prose / Heading / List / Table block -> Inline WYSIWYG (Phương án 2)
+      if (block.dataset.editingActive === "1") return;
+      block.dataset.editingActive = "1";
+      block.dataset.originalHtml = block.innerHTML;
+
+      const isTableBlock = block.classList.contains("gb-table-block");
+      const toolbar = document.createElement("div");
+      toolbar.className = "gb-wysiwyg-toolbar mb-2 px-3 py-2 rounded-xl border border-emerald-500/50 gb-surface flex flex-wrap items-center justify-between gap-2 text-xs shadow-sm";
+      toolbar.dataset.forBlock = String(idx);
+      toolbar.innerHTML = `
+        <div class="flex flex-wrap items-center gap-1.5">
+          <span class="px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px] mr-1">
+            Soạn thảo trực quan
+          </span>
+          <button type="button" aria-label="In đậm (⌘B)" onmousedown="event.preventDefault(); execWysiwygCmd('bold')" class="h-7 min-w-[28px] px-2.5 rounded-md border gb-border-strong hover:border-emerald-500 font-bold" title="In đậm (⌘B)">
+            B
+          </button>
+          <button type="button" aria-label="In nghiêng (⌘I)" onmousedown="event.preventDefault(); execWysiwygCmd('italic')" class="h-7 min-w-[28px] px-2.5 rounded-md border gb-border-strong hover:border-emerald-500 italic" title="In nghiêng (⌘I)">
+            I
+          </button>
+          <button type="button" aria-label="Mã nội tuyến" onmousedown="event.preventDefault(); execInlineCodeWrap()" class="h-7 min-w-[28px] px-2.5 rounded-md border gb-border-strong hover:border-emerald-500 font-mono text-[11px]" title="Mã nội tuyến">
+            &lt;/&gt;
+          </button>
+          ${isTableBlock ? `
+            <button type="button" onclick="addRowToTableBlock(${idx})" class="h-7 px-2.5 rounded-md border gb-border-strong hover:border-emerald-500 text-[11px] font-medium">
+              + Thêm dòng
+            </button>
+            <button type="button" onclick="removeRowFromTableBlock(${idx})" class="h-7 px-2.5 rounded-md border gb-border-strong hover:border-rose-500 text-[11px] font-medium">
+              - Xóa dòng
+            </button>
+          ` : ""}
+        </div>
+        <div class="flex items-center gap-2 ml-auto">
+          <span class="hidden sm:inline text-[11px] text-slate-400">⌘S lưu · Esc hủy</span>
+          <button type="button" onclick="commitBlockEdit(${idx})" class="h-7 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold">
+            Lưu đoạn này
+          </button>
+          <button type="button" onclick="cancelBlockEdit(${idx})" class="h-7 px-2.5 rounded-lg border gb-border-strong text-slate-500">
+            Hủy
+          </button>
+        </div>
+      `;
+
+      block.insertAdjacentElement("beforebegin", toolbar);
+      const editableTarget = isTableBlock ? (block.querySelector("table") || block) : block;
+      editableTarget.setAttribute("contenteditable", "true");
+      editableTarget.onkeydown = (ev) => {
+        if (ev.key === "Escape") {
+          ev.preventDefault();
+          cancelBlockEdit(idx);
+        } else if ((ev.metaKey || ev.ctrlKey) && (ev.key.toLowerCase() === "s" || ev.key === "Enter")) {
+          ev.preventDefault();
+          commitBlockEdit(idx);
+        }
+      };
+      block.classList.add("gb-block-editing");
+      editableTarget.focus();
+    }
+
+    function execWysiwygCmd(cmd) {
+      document.execCommand(cmd, false, null);
+    }
+
+    function execInlineCodeWrap() {
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount) return;
+      const text = sel.toString();
+      if (!text) return;
+      document.execCommand("insertHTML", false, `<code>${text}</code>`);
+    }
+
+    function addRowToTableBlock(idx) {
+      const blocks = getEditableBlockElements();
+      const block = blocks[idx];
+      if (!block) return;
+      const tbody = block.querySelector("tbody") || block.querySelector("table");
+      if (!tbody) return;
+      const lastRow = tbody.querySelector("tr:last-child");
+      if (!lastRow) return;
+      const newRow = lastRow.cloneNode(true);
+      newRow.querySelectorAll("td, th").forEach((cell) => {
+        cell.textContent = "Nội dung mới";
+      });
+      tbody.appendChild(newRow);
+    }
+
+    function removeRowFromTableBlock(idx) {
+      const blocks = getEditableBlockElements();
+      const block = blocks[idx];
+      if (!block) return;
+      const tbody = block.querySelector("tbody");
+      if (!tbody || tbody.querySelectorAll("tr").length <= 1) return;
+      const lastRow = tbody.querySelector("tr:last-child");
+      if (lastRow) lastRow.remove();
+    }
+
+    async function commitBlockEdit(idx) {
+      const blocks = getEditableBlockElements();
+      const block = blocks[idx];
+      if (!block) return;
+      const articleEl = document.getElementById("gitbook-article");
+      const toolbar = articleEl.querySelector(`.gb-wysiwyg-toolbar[data-for-block="${idx}"]`);
+      if (toolbar) toolbar.remove();
+
+      delete block.dataset.editingActive;
+      delete block.dataset.originalHtml;
+      block.classList.remove("gb-block-editing");
+      block.removeAttribute("contenteditable");
+      const tbl = block.querySelector("table");
+      if (tbl) tbl.removeAttribute("contenteditable");
+
+      decorateEditableBlocks();
+      await saveEditedMarkdown(true);
+    }
+
+    function cancelBlockEdit(idx) {
+      const blocks = getEditableBlockElements();
+      const block = blocks[idx];
+      if (!block) return;
+      const articleEl = document.getElementById("gitbook-article");
+      const toolbar = articleEl.querySelector(`.gb-wysiwyg-toolbar[data-for-block="${idx}"]`);
+      if (toolbar) toolbar.remove();
+
+      if (block.dataset.originalHtml !== undefined) {
+        block.innerHTML = block.dataset.originalHtml;
+      }
+      delete block.dataset.editingActive;
+      delete block.dataset.originalHtml;
+      block.classList.remove("gb-block-editing");
+      block.removeAttribute("contenteditable");
+      const tbl = block.querySelector("table");
+      if (tbl) tbl.removeAttribute("contenteditable");
+
+      decorateEditableBlocks();
+    }
+
+    const flowCanvasStates = {};
+
+    function cleanMermaidLabelText(s) {
+      return String(s || "").replace(/<br\s*\/?>/gi, " ").replace(/\s+/g, " ").trim();
+    }
+
+    function wrapMermaidLabelText(s) {
+      const words = cleanMermaidLabelText(s).split(" ").filter(Boolean);
+      if (words.length <= 8) return words.join(" ");
+      const mid = Math.ceil(words.length / 2);
+      return `${words.slice(0, mid).join(" ")}<br/>${words.slice(mid).join(" ")}`;
+    }
+
+    function parseMermaidToFlowGraph(rawCode) {
+      const lines = String(rawCode || "").split(/\r?\n/);
+      let kind = "flowchart";
+      let direction = "TB";
+      if (/^\s*sequenceDiagram\b/m.test(rawCode)) {
+        kind = "sequence";
+        direction = "LR";
+      } else if (/^\s*stateDiagram(?:-v2)?\b/m.test(rawCode)) {
+        kind = "state";
+        direction = "TB";
+      } else if (/\b(?:flowchart|graph)\s+LR\b/i.test(rawCode)) {
+        direction = "LR";
+      }
+
+      const nodesMap = new Map();
+      const subgraphs = [];
+      const edges = [];
+      let currentSg = null;
+      const reserved = new Set(["flowchart", "graph", "subgraph", "end", "direction", "TB", "TD", "LR", "RL", "BT", "sequenceDiagram", "stateDiagram", "stateDiagram-v2", "participant", "actor", "state", "as"]);
+
+      function ensureNode(id, label, shape = "rect", sgId = currentSg) {
+        const cleanId = String(id || "").trim();
+        if (!cleanId || reserved.has(cleanId)) return null;
+        if (!nodesMap.has(cleanId)) {
+          nodesMap.set(cleanId, {
+            id: cleanId,
+            label: cleanMermaidLabelText(label || cleanId),
+            shape: shape || "rect",
+            subgraphId: sgId || null,
+            x: 0,
+            y: 0,
+            w: 184,
+            h: 54
+          });
+          if (sgId) {
+            const sg = subgraphs.find((s) => s.id === sgId);
+            if (sg && !sg.nodeIds.includes(cleanId)) sg.nodeIds.push(cleanId);
+          }
+        } else {
+          const n = nodesMap.get(cleanId);
+          if (label && n.label === cleanId) n.label = cleanMermaidLabelText(label);
+          if (shape && shape !== "rect") n.shape = shape;
+          if (sgId && !n.subgraphId) {
+            n.subgraphId = sgId;
+            const sg = subgraphs.find((s) => s.id === sgId);
+            if (sg && !sg.nodeIds.includes(cleanId)) sg.nodeIds.push(cleanId);
+          }
+        }
+        return nodesMap.get(cleanId);
+      }
+
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line || line.startsWith("%%")) continue;
+
+        const sgMatch = line.match(/^subgraph\s+([A-Za-z0-9_]+)\s*(?:\[\s*"([^"]+)"\s*\])?/i);
+        if (sgMatch) {
+          const sgId = sgMatch[1];
+          const sgTitle = cleanMermaidLabelText(sgMatch[2] || sgId);
+          subgraphs.push({ id: sgId, title: sgTitle, nodeIds: [] });
+          currentSg = sgId;
+          continue;
+        }
+        if (/^end\b/i.test(line)) {
+          currentSg = null;
+          continue;
+        }
+
+        const stateMatch = line.match(/^state\s+"([^"]+)"\s+as\s+([A-Za-z0-9_]+)/i);
+        if (stateMatch) {
+          ensureNode(stateMatch[2], stateMatch[1], "rounded");
+          continue;
+        }
+
+        const partMatch = line.match(/^(?:participant|actor)\s+([A-Za-z0-9_]+)(?:\s+as\s+(.+))?$/i);
+        if (partMatch) {
+          ensureNode(partMatch[1], partMatch[2] || partMatch[1], "rect");
+          continue;
+        }
+
+        // Extract inline node declarations (both quoted and unquoted) and replace with node ID
+        let workingLine = line.replace(
+          /\b([A-Za-z0-9_]+)\s*(?:\(\[\s*"?([^"\]]+)"?\s*\]\)|\[\(\s*"?([^"\)]+)"?\s*\)\]|\{\{\s*"?([^"\}]+)"?\s*\}\}|\{\s*"?([^"\}]+)"?\s*\}|\[\s*"?([^"\]]+)"?\s*\])/g,
+          (_, id, stLbl, cylLbl, hexLbl, diaLbl, rectLbl) => {
+            if (stLbl !== undefined) ensureNode(id, stLbl, "stadium");
+            else if (cylLbl !== undefined) ensureNode(id, cylLbl, "cylinder");
+            else if (hexLbl !== undefined || diaLbl !== undefined) ensureNode(id, hexLbl || diaLbl, "diamond");
+            else if (rectLbl !== undefined) ensureNode(id, rectLbl, "rect");
+            return id;
+          }
+        );
+
+        // Sequence edge
+        if (kind === "sequence") {
+          const seqEdge = line.match(/^([A-Za-z0-9_]+)\s*(->>|-->>|->|-->)\s*([A-Za-z0-9_]+)\s*:\s*(.+)$/);
+          if (seqEdge) {
+            const fromId = seqEdge[1];
+            const arrow = seqEdge[2];
+            const toId = seqEdge[3];
+            const msg = cleanMermaidLabelText(seqEdge[4]);
+            ensureNode(fromId, fromId);
+            ensureNode(toId, toId);
+            edges.push({ id: `e${edges.length + 1}`, from: fromId, to: toId, label: msg, arrow });
+            continue;
+          }
+        }
+
+        // Normalize "-- label -->", "-. label .->", "== label ==>", and stateDiagram ": label"
+        workingLine = workingLine
+          .replace(/--\s*"?([^"->]+?)"?\s*-->/g, "-->|$1|")
+          .replace(/-\.\s*"?([^".>]+?)"?\s*\.->/g, "-.->|$1|")
+          .replace(/==\s*"?([^"=>]+?)"?\s*==>/g, "==>|$1|");
+
+        if (kind === "state") {
+          workingLine = workingLine.replace(
+            /([A-Za-z0-9_]+|\[\*\])\s*(-->)\s*([A-Za-z0-9_]+|\[\*\])\s*:\s*(.+)$/,
+            "$1 $2|$4| $3"
+          );
+        }
+
+        // Parse chained edges (A --> B --> C) and multi-node '&' groups (R1 & R2 --> B1, B4 --> O1 & O2)
+        const arrowRegex = /\s*(-\.->|-->|==>|---)\s*(?:\|([^|]*)\|\s*)?/g;
+        const arrowMatches = Array.from(workingLine.matchAll(arrowRegex));
+        if (arrowMatches.length > 0) {
+          const segments = [];
+          segments.push(workingLine.slice(0, arrowMatches[0].index));
+          for (let mi = 0; mi < arrowMatches.length; mi++) {
+            const segStart = arrowMatches[mi].index + arrowMatches[mi][0].length;
+            const segEnd = mi + 1 < arrowMatches.length ? arrowMatches[mi + 1].index : workingLine.length;
+            segments.push(workingLine.slice(segStart, segEnd));
+          }
+
+          const parseNodeToken = (tok) => {
+            const t = String(tok || "").trim();
+            if (t === "[*]") return { id: null, isStar: true };
+            const m = t.match(/^([A-Za-z0-9_]+)/);
+            return m ? { id: m[1], isStar: false } : { id: null, isStar: false };
+          };
+
+          for (let mi = 0; mi < arrowMatches.length; mi++) {
+            const arrow = arrowMatches[mi][1];
+            const rawLbl = (arrowMatches[mi][2] || "").trim().replace(/^["']|["']$/g, "");
+            const edgeLbl = cleanMermaidLabelText(rawLbl);
+            const leftGroup = (segments[mi] || "").split("&").map(parseNodeToken).filter((x) => x.id || x.isStar);
+            const rightGroup = (segments[mi + 1] || "").split("&").map(parseNodeToken).filter((x) => x.id || x.isStar);
+
+            for (const uTok of leftGroup) {
+              for (const vTok of rightGroup) {
+                const fromId = uTok.isStar ? "START_STATE" : uTok.id;
+                const toId = vTok.isStar ? "END_STATE" : vTok.id;
+                ensureNode(fromId, uTok.isStar ? "Bắt đầu" : fromId, uTok.isStar ? "stadium" : "rect", null);
+                ensureNode(toId, vTok.isStar ? "Kết thúc" : toId, vTok.isStar ? "stadium" : "rect", null);
+                if (fromId && toId) {
+                  edges.push({
+                    id: `e${edges.length + 1}`,
+                    from: fromId,
+                    to: toId,
+                    label: edgeLbl,
+                    arrow
+                  });
+                }
+              }
+            }
+          }
+        }
+      }
+
+      const graph = {
+        kind,
+        direction,
+        nodes: Array.from(nodesMap.values()),
+        edges,
+        subgraphs,
+        selectedNodeId: null,
+        selectedEdgeId: null
+      };
+      computeFlowGraphLayout(graph);
+      return graph;
+    }
+
+    function computeFlowGraphLayout(graph) {
+      const nodes = graph.nodes || [];
+      if (!nodes.length) return;
+      const ranks = new Map();
+      const sgOrder = new Map();
+      (graph.subgraphs || []).forEach((sg, idx) => sgOrder.set(sg.id, idx));
+
+      nodes.forEach((n) => ranks.set(n.id, 0));
+
+      const maxIter = Math.min(nodes.length + 4, 24);
+      for (let iter = 0; iter < maxIter; iter++) {
+        for (const e of graph.edges || []) {
+          const ru = ranks.get(e.from) || 0;
+          const rv = ranks.get(e.to) || 0;
+          if (e.from !== e.to && rv < ru + 1) {
+            ranks.set(e.to, Math.min(ru + 1, nodes.length + 2));
+          }
+        }
+      }
+
+      // Keep nodes in later subgraphs ordered below/after earlier subgraphs
+      if (sgOrder.size > 1) {
+        let minAllowedRank = 0;
+        for (const sg of graph.subgraphs || []) {
+          const sgNodes = nodes.filter((n) => n.subgraphId === sg.id);
+          if (!sgNodes.length) continue;
+          const curMin = Math.min(...sgNodes.map((n) => ranks.get(n.id) || 0));
+          const shift = minAllowedRank > curMin ? (minAllowedRank - curMin) : 0;
+          if (shift > 0) {
+            sgNodes.forEach((n) => ranks.set(n.id, (ranks.get(n.id) || 0) + shift));
+          }
+          const newMax = Math.max(...sgNodes.map((n) => ranks.get(n.id) || 0));
+          minAllowedRank = newMax + 1;
+        }
+      }
+
+      const layers = new Map();
+      nodes.forEach((n) => {
+        const r = ranks.get(n.id) || 0;
+        if (!layers.has(r)) layers.set(r, []);
+        layers.get(r).push(n);
+      });
+
+      const sortedRanks = Array.from(layers.keys()).sort((a, b) => a - b);
+      const nodeW = 180;
+      const nodeH = 44;
+
+      if (graph.direction === "LR") {
+        let curX = 36;
+        let prevSg = null;
+        sortedRanks.forEach((r, colIdx) => {
+          const colNodes = layers.get(r);
+          const rowSg = colNodes[0] ? colNodes[0].subgraphId : null;
+          if (colIdx > 0) {
+            curX += (rowSg !== prevSg && (rowSg || prevSg)) ? 236 : 214;
+          }
+          prevSg = rowSg;
+          colNodes.forEach((n, rowIdx) => {
+            n.w = nodeW;
+            n.h = nodeH;
+            n.x = curX;
+            n.y = 42 + rowIdx * 78;
+          });
+        });
+      } else {
+        let curY = 46;
+        let prevSg = null;
+        sortedRanks.forEach((r, rowIdx) => {
+          const rowNodes = layers.get(r);
+          const rowSg = rowNodes[0] ? rowNodes[0].subgraphId : null;
+          if (rowIdx > 0) {
+            curY += (rowSg !== prevSg && (rowSg || prevSg)) ? 124 : 84;
+          }
+          prevSg = rowSg;
+          const colGap = 56;
+          const totalW = rowNodes.length * nodeW + (rowNodes.length - 1) * colGap;
+          const startX = Math.max(36, Math.round((700 - totalW) / 2));
+          rowNodes.forEach((n, colIdx) => {
+            n.w = nodeW;
+            n.h = nodeH;
+            n.x = startX + colIdx * (nodeW + colGap);
+            n.y = curY;
+          });
+        });
+      }
+    }
+
+    function serializeFlowGraphToMermaid(graph) {
+      if (!graph || !graph.nodes.length) return "flowchart TB\n  A[\" Khởi tạo \"]";
+      if (graph.kind === "sequence") {
+        const lines = ["sequenceDiagram"];
+        graph.nodes.forEach((n) => {
+          lines.push(`    participant ${n.id} as ${cleanMermaidLabelText(n.label)}`);
+        });
+        graph.edges.forEach((e) => {
+          lines.push(`    ${e.from}${e.arrow || "->>"}${e.to}: ${cleanMermaidLabelText(e.label || "Xử lý")}`);
+        });
+        return lines.join("\n");
+      }
+
+      const lines = [`flowchart ${graph.direction || "TB"}`];
+      const renderedNodeIds = new Set();
+
+      function formatNodeDef(n) {
+        const safe = wrapMermaidLabelText(n.label).replace(/"/g, "'");
+        if (n.shape === "diamond") return `${n.id}{"${safe}"}`;
+        if (n.shape === "stadium") return `${n.id}(["${safe}"])`;
+        if (n.shape === "cylinder") return `${n.id}[("${safe}")]`;
+        return `${n.id}["${safe}"]`;
+      }
+
+      (graph.subgraphs || []).forEach((sg) => {
+        const sgNodes = graph.nodes.filter((n) => n.subgraphId === sg.id);
+        if (!sgNodes.length) return;
+        lines.push(`    subgraph ${sg.id}["${cleanMermaidLabelText(sg.title).replace(/"/g, "'")}"]`);
+        sgNodes.forEach((n) => {
+          lines.push(`        ${formatNodeDef(n)}`);
+          renderedNodeIds.add(n.id);
+        });
+        lines.push("    end");
+      });
+
+      graph.nodes.forEach((n) => {
+        if (!renderedNodeIds.has(n.id)) {
+          lines.push(`    ${formatNodeDef(n)}`);
+          renderedNodeIds.add(n.id);
+        }
+      });
+
+      (graph.edges || []).forEach((e) => {
+        const arrow = e.arrow || "-->";
+        if (e.label && e.label.trim()) {
+          const safeLbl = cleanMermaidLabelText(e.label).replace(/\|/g, "/").replace(/"/g, "'");
+          lines.push(`    ${e.from} ${arrow}|"${safeLbl}"| ${e.to}`);
+        } else {
+          lines.push(`    ${e.from} ${arrow} ${e.to}`);
+        }
+      });
+
+      return lines.join("\n");
+    }
+
+    function syncGraphToMermaidTextarea(idx) {
+      const graph = flowCanvasStates[idx];
+      const ta = document.getElementById(`mmd-editor-${idx}`);
+      if (!graph || !ta) return;
+      ta.value = serializeFlowGraphToMermaid(graph);
+    }
+
+    function buildBezierPath(x1, y1, x2, y2, dir) {
+      if (dir === "LR") {
+        const dist = Math.abs(x2 - x1);
+        const dx = Math.max(12, Math.min(48, dist * 0.42));
+        return `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+      }
+      const dist = Math.abs(y2 - y1);
+      const dy = Math.max(12, Math.min(48, dist * 0.42));
+      if (Math.abs(x2 - x1) > 12 && y2 > y1 + 40) {
+        const convergingToCenter = Math.abs(x1 - 350) >= Math.abs(x2 - 350);
+        if (convergingToCenter) {
+          const midDropY = Math.min(y2 - 22, y1 + Math.round((y2 - y1) * 0.52));
+          return `M ${x1} ${y1} L ${x1} ${midDropY} C ${x1} ${y2 - 6}, ${x2} ${y2 - 22}, ${x2} ${y2}`;
+        }
+        const spreadY = Math.min(y2 - 12, y1 + Math.round((y2 - y1) * 0.48));
+        return `M ${x1} ${y1} C ${x1} ${y1 + 20}, ${x2} ${spreadY - 18}, ${x2} ${spreadY} L ${x2} ${y2}`;
+      }
+      return `M ${x1} ${y1} C ${x1} ${y1 + dy}, ${x2} ${y2 - dy}, ${x2} ${y2}`;
+    }
+
+    function getNodePortCoords(node, port, dir) {
+      const w = node.w || 180;
+      const h = node.h || 44;
+      if (dir === "LR") {
+        return port === "in"
+          ? { x: node.x, y: node.y + h / 2 }
+          : { x: node.x + w, y: node.y + h / 2 };
+      }
+      return port === "in"
+        ? { x: node.x + w / 2, y: node.y }
+        : { x: node.x + w / 2, y: node.y + h };
+    }
+
+    function renderFlowCanvas(idx) {
+      const stage = document.getElementById(`mmd-canvas-stage-${idx}`);
+      const graph = flowCanvasStates[idx];
+      if (!stage || !graph) return;
+
+      let maxX = 720;
+      let maxY = 540;
+      graph.nodes.forEach((n) => {
+        if (n.x + 220 > maxX) maxX = n.x + 220;
+        if (n.y + 96 > maxY) maxY = n.y + 96;
+      });
+      stage.style.width = `${maxX}px`;
+      stage.style.height = `${maxY}px`;
+
+      // Compute subgraph bounding boxes
+      const sgHtml = (graph.subgraphs || []).map((sg) => {
+        const sgNodes = graph.nodes.filter((n) => n.subgraphId === sg.id);
+        if (!sgNodes.length) return "";
+        const rawMinX = Math.min(...sgNodes.map((n) => n.x)) - 20;
+        const rawMaxX = Math.max(...sgNodes.map((n) => n.x + (n.w || 180))) + 20;
+        const minX = graph.direction === "LR" ? rawMinX : Math.min(rawMinX, 224);
+        const maxSgX = graph.direction === "LR" ? rawMaxX : Math.max(rawMaxX, 476);
+        const minY = Math.min(...sgNodes.map((n) => n.y)) - 34;
+        const maxSgY = Math.max(...sgNodes.map((n) => n.y + (n.h || 44))) + 14;
+        return `
+          <div class="gb-flow-subgraph-box" style="left:${minX}px;top:${minY}px;width:${maxSgX - minX}px;height:${maxSgY - minY}px;">
+            <span class="gb-flow-subgraph-title">${sg.title}</span>
+          </div>
+        `;
+      }).join("");
+
+      const nodesById = new Map(graph.nodes.map((n) => [n.id, n]));
+      let selectedEdgePopoverHtml = "";
+
+      const edgesSvgGroups = (graph.edges || []).map((e) => {
+        const u = nodesById.get(e.from);
+        const v = nodesById.get(e.to);
+        if (!u || !v) return "";
+        const p1 = getNodePortCoords(u, "out", graph.direction);
+        const p2 = getNodePortCoords(v, "in", graph.direction);
+        const d = buildBezierPath(p1.x, p1.y, p2.x, p2.y, graph.direction);
+        const midX = Math.round((p1.x + p2.x) / 2);
+        const midY = Math.round((p1.y + p2.y) / 2);
+        const isSelected = graph.selectedEdgeId === e.id;
+        if (isSelected) {
+          selectedEdgePopoverHtml = `
+            <div class="gb-flow-edge-popover" style="left:${midX}px;top:${midY}px;" onpointerdown="event.stopPropagation()">
+              <input
+                type="text"
+                value="${(e.label || "").replace(/"/g, "&quot;")}"
+                placeholder="Nhãn..."
+                oninput="updateFlowEdgeLabelInline(${idx}, '${e.id}', this.value)"
+                class="w-28 h-5 px-1.5 rounded bg-slate-800 text-[11px] text-white border border-slate-700 focus:outline-none focus:border-emerald-400"
+              />
+              <button
+                type="button"
+                onclick="deleteFlowEdgeById(${idx}, '${e.id}', event)"
+                title="Xóa mũi tên"
+                class="h-5 px-1.5 rounded hover:bg-rose-500/30 text-rose-300 text-[11px]"
+              >✕</button>
+            </div>
+          `;
+        }
+        return `
+          <g class="gb-flow-edge-group ${isSelected ? 'selected' : ''}" onclick="selectFlowEdge(${idx}, '${e.id}', event)">
+            <path class="gb-flow-edge-hit" d="${d}"></path>
+            <path class="gb-flow-edge-path" d="${d}" marker-end="url(#gb-flow-arrow-${idx})"></path>
+            ${e.label && !isSelected ? `
+              <rect x="${midX - 46}" y="${midY - 9}" width="92" height="18" rx="4" fill="#0f172a" opacity="0.82"></rect>
+              <text x="${midX}" y="${midY + 3}" text-anchor="middle" fill="#f8fafc" font-size="9.5">${e.label.slice(0, 18)}</text>
+            ` : ""}
+          </g>
+        `;
+      }).join("");
+
+      const nodesHtml = graph.nodes.map((n) => {
+        const isSelected = graph.selectedNodeId === n.id;
+        const inStyle = graph.direction === "LR"
+          ? "left:-6px;top:calc(50% - 6px);"
+          : "top:-6px;left:calc(50% - 6px);";
+        const outStyle = graph.direction === "LR"
+          ? "right:-6px;top:calc(50% - 6px);"
+          : "bottom:-6px;left:calc(50% - 6px);";
+        const floatingToolbar = isSelected ? `
+          <div class="gb-flow-node-toolbar" onpointerdown="event.stopPropagation()">
+            <button type="button" onclick="addConnectedFlowNode(${idx}, '${n.id}', 'rect', event)" title="Nối thêm bước tiếp theo">
+              <span>+ Bước</span>
+            </button>
+            <button type="button" onclick="addConnectedFlowNode(${idx}, '${n.id}', 'diamond', event)" title="Nối thêm rẽ nhánh">
+              <span>◇ Nhánh</span>
+            </button>
+            <button type="button" onclick="startFlowNodeInlineEdit(${idx}, '${n.id}', event)" title="Sửa nội dung khối">
+              <span>Sửa</span>
+            </button>
+            <button type="button" class="danger" onclick="deleteFlowNodeById(${idx}, '${n.id}', event)" title="Xóa khối này">
+              <span>✕</span>
+            </button>
+          </div>
+        ` : "";
+        return `
+          <div
+            id="gb-fnode-${idx}-${n.id}"
+            data-node-id="${n.id}"
+            style="left:${n.x}px;top:${n.y}px;"
+            title="${n.label.replace(/"/g, "&quot;")}"
+            class="gb-flow-node ${n.shape === 'diamond' ? 'shape-diamond' : ''} ${isSelected ? 'selected' : ''}"
+            onpointerdown="startFlowNodeDrag(${idx}, '${n.id}', event)"
+            ondblclick="startFlowNodeInlineEdit(${idx}, '${n.id}', event)"
+          >
+            ${floatingToolbar}
+            <span class="gb-flow-handle" style="${inStyle}" title="Điểm nối vào" data-port="in" data-node-id="${n.id}"></span>
+            <div
+              id="gb-fnode-lbl-${idx}-${n.id}"
+              class="gb-flow-node-label"
+              onblur="finishFlowNodeInlineEdit(${idx}, '${n.id}', this)"
+              onkeydown="handleFlowNodeLabelKey(event, this)"
+            >${n.label}</div>
+            <span
+              class="gb-flow-handle"
+              style="${outStyle}"
+              title="Kéo sang khối khác để nối mũi tên"
+              data-port="out"
+              data-node-id="${n.id}"
+              onpointerdown="startFlowEdgeConnectDrag(${idx}, '${n.id}', event)"
+            ></span>
+          </div>
+        `;
+      }).join("");
+
+      stage.innerHTML = `
+        ${sgHtml}
+        <svg class="gb-flow-edges-svg" width="${maxX}" height="${maxY}" viewBox="0 0 ${maxX} ${maxY}">
+          <defs>
+            <marker id="gb-flow-arrow-${idx}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981"></path>
+            </marker>
+          </defs>
+          ${edgesSvgGroups}
+          <path id="gb-flow-temp-edge-${idx}" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="4 4" d=""></path>
+        </svg>
+        ${nodesHtml}
+        ${selectedEdgePopoverHtml}
+      `;
+    }
+
+    function startFlowNodeDrag(idx, nodeId, ev) {
+      if (ev.target.classList.contains("gb-flow-handle")) return;
+      if (ev.target.closest(".gb-flow-node-toolbar")) return;
+      const lblEl = document.getElementById(`gb-fnode-lbl-${idx}-${nodeId}`);
+      if (lblEl && lblEl.getAttribute("contenteditable") === "true") return;
+
+      const graph = flowCanvasStates[idx];
+      if (!graph) return;
+      const node = graph.nodes.find((n) => n.id === nodeId);
+      if (!node) return;
+
+      graph.selectedNodeId = nodeId;
+      graph.selectedEdgeId = null;
+
+      const nodeEl = document.getElementById(`gb-fnode-${idx}-${nodeId}`);
+      const startX = ev.clientX;
+      const startY = ev.clientY;
+      const origX = node.x;
+      const origY = node.y;
+      let moved = false;
+
+      if (nodeEl && nodeEl.setPointerCapture) {
+        try { nodeEl.setPointerCapture(ev.pointerId); } catch (_) {}
+      }
+
+      const onMove = (moveEv) => {
+        const dx = moveEv.clientX - startX;
+        const dy = moveEv.clientY - startY;
+        if (Math.abs(dx) > 2 || Math.abs(dy) > 2) moved = true;
+        node.x = Math.max(12, Math.round(origX + dx));
+        node.y = Math.max(12, Math.round(origY + dy));
+        renderFlowCanvas(idx);
+      };
+
+      const onUp = () => {
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+        if (!moved) {
+          renderFlowCanvas(idx);
+        } else {
+          syncGraphToMermaidTextarea(idx);
+        }
+      };
+
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+    }
+
+    function startFlowNodeInlineEdit(idx, nodeId, ev) {
+      if (ev) ev.stopPropagation();
+      const lblEl = document.getElementById(`gb-fnode-lbl-${idx}-${nodeId}`);
+      if (!lblEl) return;
+      lblEl.setAttribute("contenteditable", "true");
+      lblEl.focus();
+      const range = document.createRange();
+      range.selectNodeContents(lblEl);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    function handleFlowNodeLabelKey(ev, el) {
+      if (ev.key === "Enter" || ev.key === "Escape") {
+        ev.preventDefault();
+        el.blur();
+      }
+    }
+
+    function finishFlowNodeInlineEdit(idx, nodeId, el) {
+      el.removeAttribute("contenteditable");
+      const graph = flowCanvasStates[idx];
+      if (!graph) return;
+      const node = graph.nodes.find((n) => n.id === nodeId);
+      if (!node) return;
+      const newText = cleanMermaidLabelText(el.textContent || "");
+      if (newText) {
+        node.label = newText;
+        syncGraphToMermaidTextarea(idx);
+      } else {
+        el.textContent = node.label;
+      }
+    }
+
+    function startFlowEdgeConnectDrag(idx, fromNodeId, ev) {
+      ev.stopPropagation();
+      ev.preventDefault();
+      const graph = flowCanvasStates[idx];
+      const stage = document.getElementById(`mmd-canvas-stage-${idx}`);
+      const tempPath = document.getElementById(`gb-flow-temp-edge-${idx}`);
+      if (!graph || !stage || !tempPath) return;
+
+      const fromNode = graph.nodes.find((n) => n.id === fromNodeId);
+      if (!fromNode) return;
+      const p1 = getNodePortCoords(fromNode, "out", graph.direction);
+
+      const onMove = (moveEv) => {
+        const rect = stage.getBoundingClientRect();
+        const x2 = moveEv.clientX - rect.left;
+        const y2 = moveEv.clientY - rect.top;
+        tempPath.setAttribute("d", buildBezierPath(p1.x, p1.y, x2, y2, graph.direction));
+      };
+
+      const onUp = (upEv) => {
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+        tempPath.setAttribute("d", "");
+
+        const hitEl = document.elementFromPoint(upEv.clientX, upEv.clientY);
+        const targetNodeEl = hitEl ? hitEl.closest(".gb-flow-node") : null;
+        if (targetNodeEl) {
+          const toNodeId = targetNodeEl.dataset.nodeId;
+          if (toNodeId && toNodeId !== fromNodeId) {
+            const exists = graph.edges.some((e) => e.from === fromNodeId && e.to === toNodeId);
+            if (!exists) {
+              graph.edges.push({
+                id: `e${Date.now()}`,
+                from: fromNodeId,
+                to: toNodeId,
+                label: "",
+                arrow: graph.kind === "sequence" ? "->>" : "-->"
+              });
+              syncGraphToMermaidTextarea(idx);
+              renderFlowCanvas(idx);
+            }
+          }
+        }
+      };
+
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+    }
+
+    function selectFlowEdge(idx, edgeId, ev) {
+      ev.stopPropagation();
+      const graph = flowCanvasStates[idx];
+      if (!graph) return;
+      graph.selectedEdgeId = edgeId;
+      graph.selectedNodeId = null;
+      renderFlowCanvas(idx);
+    }
+
+    function updateFlowEdgeLabelInline(idx, edgeId, val) {
+      const graph = flowCanvasStates[idx];
+      if (!graph) return;
+      const edge = graph.edges.find((e) => e.id === edgeId);
+      if (!edge) return;
+      edge.label = cleanMermaidLabelText(val);
+      syncGraphToMermaidTextarea(idx);
+    }
+
+    function deleteFlowEdgeById(idx, edgeId, ev) {
+      if (ev) ev.stopPropagation();
+      const graph = flowCanvasStates[idx];
+      if (!graph) return;
+      graph.edges = graph.edges.filter((e) => e.id !== edgeId);
+      graph.selectedEdgeId = null;
+      syncGraphToMermaidTextarea(idx);
+      renderFlowCanvas(idx);
+    }
+
+    function deleteFlowNodeById(idx, nodeId, ev) {
+      if (ev) ev.stopPropagation();
+      const graph = flowCanvasStates[idx];
+      if (!graph) return;
+      graph.nodes = graph.nodes.filter((n) => n.id !== nodeId);
+      graph.edges = graph.edges.filter((e) => e.from !== nodeId && e.to !== nodeId);
+      graph.selectedNodeId = null;
+      syncGraphToMermaidTextarea(idx);
+      renderFlowCanvas(idx);
+    }
+
+    function addConnectedFlowNode(idx, fromNodeId, shape = "rect", ev) {
+      if (ev) ev.stopPropagation();
+      const graph = flowCanvasStates[idx];
+      if (!graph) return;
+      graph.selectedNodeId = fromNodeId;
+      addFlowCanvasNode(idx, shape);
+    }
+
+    function addFlowCanvasNode(idx, shape = "rect") {
+      const graph = flowCanvasStates[idx];
+      if (!graph) return;
+      const newId = `B_${graph.nodes.length + 1}_${Math.floor(Math.random() * 90 + 10)}`;
+      const refNode = graph.nodes.find((n) => n.id === graph.selectedNodeId) || graph.nodes[graph.nodes.length - 1];
+      const newX = refNode ? (graph.direction === "LR" ? refNode.x + 214 : refNode.x) : 120;
+      const newY = refNode ? (graph.direction === "LR" ? refNode.y : refNode.y + 82) : 60;
+
+      graph.nodes.push({
+        id: newId,
+        label: shape === "diamond" ? "Điều kiện?" : "Bước mới",
+        shape,
+        subgraphId: refNode ? refNode.subgraphId : null,
+        x: newX,
+        y: newY,
+        w: 180,
+        h: 44
+      });
+
+      if (refNode) {
+        graph.edges.push({
+          id: `e_${Date.now()}`,
+          from: refNode.id,
+          to: newId,
+          label: "",
+          arrow: graph.kind === "sequence" ? "->>" : "-->"
+        });
+      }
+
+      graph.selectedNodeId = newId;
+      graph.selectedEdgeId = null;
+      syncGraphToMermaidTextarea(idx);
+      renderFlowCanvas(idx);
+    }
+
+    function deleteFlowCanvasSelection(idx) {
+      const graph = flowCanvasStates[idx];
+      if (!graph) return;
+      if (graph.selectedNodeId) {
+        deleteFlowNodeById(idx, graph.selectedNodeId);
+      } else if (graph.selectedEdgeId) {
+        deleteFlowEdgeById(idx, graph.selectedEdgeId);
+      }
+    }
+
+    function autoLayoutFlowCanvas(idx) {
+      const graph = flowCanvasStates[idx];
+      if (!graph) return;
+      computeFlowGraphLayout(graph);
+      renderFlowCanvas(idx);
+    }
+
+    function toggleMermaidDirection(idx) {
+      const graph = flowCanvasStates[idx];
+      if (graph) {
+        graph.direction = graph.direction === "LR" ? "TB" : "LR";
+        computeFlowGraphLayout(graph);
+        syncGraphToMermaidTextarea(idx);
+        renderFlowCanvas(idx);
+      }
+      previewMermaidBlock(idx, false);
+    }
+
+    function switchMermaidEditorTab(idx, mode) {
+      const canvasPane = document.getElementById(`mmd-canvas-pane-${idx}`);
+      const codePane = document.getElementById(`mmd-code-pane-${idx}`);
+      const btnCanvas = document.getElementById(`mmd-tab-canvas-${idx}`);
+      const btnCode = document.getElementById(`mmd-tab-code-${idx}`);
+      if (!canvasPane || !codePane) return;
+      if (mode === "code") {
+        canvasPane.classList.add("hidden");
+        codePane.classList.remove("hidden");
+        btnCode.className = "h-7 px-2.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]";
+        btnCanvas.className = "h-7 px-2.5 rounded-md text-slate-500 hover:text-slate-900 dark:hover:text-white text-[11px] font-medium";
+        previewMermaidBlock(idx, false);
+      } else {
+        const ta = document.getElementById(`mmd-editor-${idx}`);
+        if (ta) {
+          flowCanvasStates[idx] = parseMermaidToFlowGraph(ta.value);
+          renderFlowCanvas(idx);
+        }
+        codePane.classList.add("hidden");
+        canvasPane.classList.remove("hidden");
+        btnCanvas.className = "h-7 px-2.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]";
+        btnCode.className = "h-7 px-2.5 rounded-md text-slate-500 hover:text-slate-900 dark:hover:text-white text-[11px] font-medium";
+      }
+    }
+
+    function activateMermaidBlockEditor(card, idx) {
+      if (card.dataset.editingActive === "1") return;
+      card.dataset.editingActive = "1";
+      card.dataset.originalHtml = card.innerHTML;
+      const rawCode = card.dataset.rawMermaid || "";
+
+      card.classList.add("gb-block-editing", "flex-col");
+      card.innerHTML = `
+        <div class="w-full space-y-2.5">
+          <div class="flex items-center justify-between gap-2 pb-2 border-b gb-border text-xs">
+            <div class="inline-flex items-center p-0.5 rounded-lg border gb-border-strong gb-surface">
+              <button type="button" id="mmd-tab-canvas-${idx}" onclick="switchMermaidEditorTab(${idx}, 'canvas')" class="h-6 px-2.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">
+                Sơ đồ
+              </button>
+              <button type="button" id="mmd-tab-code-${idx}" onclick="switchMermaidEditorTab(${idx}, 'code')" class="h-6 px-2.5 rounded-md text-slate-500 hover:text-slate-900 dark:hover:text-white text-[11px] font-medium">
+                Mã
+              </button>
+            </div>
+
+            <div class="flex items-center gap-1">
+              <button type="button" onclick="addFlowCanvasNode(${idx}, 'rect')" class="h-7 px-2 rounded-md border gb-border-strong hover:border-emerald-500 text-[11px] font-medium inline-flex items-center gap-1" title="Thêm bước mới">
+                <svg class="w-3.5 h-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 9v6M9 12h6"/></svg>
+                <span>Bước</span>
+              </button>
+              <button type="button" onclick="addFlowCanvasNode(${idx}, 'diamond')" class="h-7 px-2 rounded-md border gb-border-strong hover:border-emerald-500 text-[11px] font-medium inline-flex items-center gap-1" title="Thêm nhánh điều kiện">
+                <svg class="w-3.5 h-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 22 12 12 22 2 12 12 2z"/></svg>
+                <span>Nhánh</span>
+              </button>
+              <button type="button" onclick="toggleMermaidDirection(${idx})" class="h-7 w-7 rounded-md border gb-border-strong hover:border-emerald-500 inline-flex items-center justify-center" title="Đổi chiều Dọc / Ngang" aria-label="Đổi chiều Dọc / Ngang">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>
+              </button>
+              <button type="button" onclick="autoLayoutFlowCanvas(${idx})" class="h-7 w-7 rounded-md border gb-border-strong hover:border-emerald-500 inline-flex items-center justify-center" title="Tự động căn đều" aria-label="Tự động căn đều">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+              </button>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+              <button type="button" onclick="commitMermaidBlock(${idx})" class="h-7 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold">
+                Lưu
+              </button>
+              <button type="button" onclick="cancelMermaidBlock(${idx})" class="h-7 w-7 rounded-lg border gb-border-strong text-slate-500 inline-flex items-center justify-center" title="Đóng" aria-label="Đóng">
+                ✕
+              </button>
+            </div>
+          </div>
+
+          <div id="mmd-canvas-pane-${idx}">
+            <div class="gb-flow-canvas-viewport" id="mmd-canvas-viewport-${idx}" onclick="clearFlowCanvasSelection(${idx}, event)">
+              <div class="gb-flow-canvas-stage" id="mmd-canvas-stage-${idx}"></div>
+            </div>
+          </div>
+
+          <div id="mmd-code-pane-${idx}" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch">
+            <textarea
+              id="mmd-editor-${idx}"
+              aria-label="Mã sơ đồ Mermaid"
+              rows="13"
+              oninput="previewMermaidBlock(${idx}, true)"
+              class="w-full min-h-[300px] h-full p-3.5 rounded-xl border gb-border-strong gb-surface font-mono text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            ></textarea>
+            <div id="mmd-live-preview-${idx}" class="p-3.5 rounded-xl border gb-border bg-white dark:bg-slate-950 overflow-x-auto flex items-center justify-center min-h-[300px]"></div>
+          </div>
+        </div>
+      `;
+      const ta = document.getElementById(`mmd-editor-${idx}`);
+      if (ta) {
+        ta.value = rawCode;
+        ta.onkeydown = (ev) => {
+          if (ev.key === "Escape") {
+            ev.preventDefault();
+            cancelMermaidBlock(idx);
+          } else if ((ev.metaKey || ev.ctrlKey) && (ev.key.toLowerCase() === "s" || ev.key === "Enter")) {
+            ev.preventDefault();
+            commitMermaidBlock(idx);
+          }
+        };
+      }
+      const g = parseMermaidToFlowGraph(rawCode);
+      g.selectedNodeId = null;
+      flowCanvasStates[idx] = g;
+      renderFlowCanvas(idx);
+    }
+
+    function clearFlowCanvasSelection(idx, ev) {
+      if (ev && (ev.target.closest(".gb-flow-node") || ev.target.closest(".gb-flow-edge-group") || ev.target.closest(".gb-flow-edge-popover"))) {
+        return;
+      }
+      const graph = flowCanvasStates[idx];
+      if (!graph) return;
+      graph.selectedNodeId = null;
+      graph.selectedEdgeId = null;
+      renderFlowCanvas(idx);
+    }
+
+    async function previewMermaidBlock(idx) {
+      const ta = document.getElementById(`mmd-editor-${idx}`);
+      const previewEl = document.getElementById(`mmd-live-preview-${idx}`);
+      if (!ta || !previewEl) return;
+      try {
+        const { svg } = await mermaid.render(`mmd-live-${Date.now()}-${idx}`, ta.value.trim());
+        previewEl.innerHTML = svg;
+        enhanceMermaidSvg(previewEl);
+      } catch (_) {}
+    }
+
+    async function commitMermaidBlock(idx) {
+      const blocks = getEditableBlockElements();
+      const card = blocks[idx];
+      if (!card) return;
+      const ta = document.getElementById(`mmd-editor-${idx}`);
+      const newCode = ta ? ta.value.trim() : (card.dataset.rawMermaid || "");
+      card.dataset.rawMermaid = newCode;
+      delete card.dataset.editingActive;
+      delete card.dataset.originalHtml;
+      card.classList.remove("gb-block-editing", "flex-col");
+
+      try {
+        const { svg } = await mermaid.render(`mmd-saved-${Date.now()}-${idx}`, newCode);
+        card.innerHTML = `<div class="gb-mermaid-svg-wrap w-full overflow-x-auto flex justify-center">${svg}</div>`;
+        enhanceMermaidSvg(card);
+      } catch (_) {}
+
+      decorateEditableBlocks();
+      await saveEditedMarkdown(true);
+    }
+
+    function cancelMermaidBlock(idx) {
+      const blocks = getEditableBlockElements();
+      const card = blocks[idx];
+      if (!card) return;
+      if (card.dataset.originalHtml !== undefined) {
+        card.innerHTML = card.dataset.originalHtml;
+      }
+      delete card.dataset.editingActive;
+      delete card.dataset.originalHtml;
+      card.classList.remove("gb-block-editing", "flex-col");
+      decorateEditableBlocks();
+    }
+
+    function inlineNodeToMarkdown(node) {
+      if (!node) return "";
+      if (node.nodeType === Node.TEXT_NODE) {
+        return node.nodeValue || "";
+      }
+      if (node.nodeType !== Node.ELEMENT_NODE) return "";
+      if (node.classList.contains("gb-block-edit-btn")) return "";
+
+      const tag = node.tagName.toLowerCase();
+      if (tag === "ul" || tag === "ol") return "";
+      const inner = Array.from(node.childNodes).map(inlineNodeToMarkdown).join("");
+      if (tag === "strong" || tag === "b") return `**${inner.trim()}**`;
+      if (tag === "em" || tag === "i") return `*${inner.trim()}*`;
+      if (tag === "code") return `\`${inner.trim()}\``;
+      if (tag === "a") {
+        const href = node.dataset.rawHref || node.getAttribute("href") || "#";
+        return `[${inner.trim()}](${href})`;
+      }
+      if (tag === "br") return "<br/>";
+      if (tag === "p") return `${inner.trim()}\n`;
+      return inner;
+    }
+
+    function listNodeToMarkdown(listEl, indent = "") {
+      const isOrdered = listEl.tagName.toLowerCase() === "ol";
+      const lines = [];
+      Array.from(listEl.querySelectorAll(":scope > li")).forEach((li, i) => {
+        const bullet = isOrdered ? `${i + 1}.` : "-";
+        const text = inlineNodeToMarkdown(li).replace(/\n+/g, " ").trim();
+        lines.push(`${indent}${bullet} ${text}`);
+        Array.from(li.querySelectorAll(":scope > ul, :scope > ol")).forEach((sub) => {
+          lines.push(listNodeToMarkdown(sub, indent + "  "));
+        });
+      });
+      return lines.join("\n");
+    }
+
+    function serializeArticleToMarkdown() {
+      const articleEl = document.getElementById("gitbook-article");
+      if (!articleEl) return currentRawMarkdown;
+      const out = [];
+
+      Array.from(articleEl.children).forEach((el) => {
+        if (el.classList.contains("gb-wysiwyg-toolbar")) return;
+        const tag = el.tagName.toLowerCase();
+
+        if (el.classList.contains("gb-doc-meta")) {
+          const today = new Date().toISOString().slice(0, 10);
+          const author = currentUserEmail || "srs-studio";
+          out.push(`> **Last Updated At:** ${today} **Updated By:** ${author}`);
+          return;
+        }
+
+        if (el.classList.contains("gb-mermaid-card")) {
+          const rawMmd = (el.dataset.rawMermaid || "").trim();
+          if (rawMmd) {
+            out.push("```mermaid\n" + rawMmd + "\n```");
+          }
+          return;
+        }
+
+        if (el.classList.contains("gb-table-block") || tag === "table") {
+          const tbl = tag === "table" ? el : el.querySelector("table");
+          if (!tbl) return;
+          const rows = Array.from(tbl.querySelectorAll("tr"));
+          if (!rows.length) return;
+          const mdRows = rows.map((tr) => {
+            const cells = Array.from(tr.querySelectorAll("th, td")).map((c) =>
+              inlineNodeToMarkdown(c).replace(/\s*\n\s*/g, " ").trim()
+            );
+            return `| ${cells.join(" | ")} |`;
+          });
+          const colCount = rows[0].querySelectorAll("th, td").length || 1;
+          const sep = `| ${Array(colCount).fill("---").join(" | ")} |`;
+          mdRows.splice(1, 0, sep);
+          out.push(mdRows.join("\n"));
+          return;
+        }
+
+        if (/^h[1-6]$/.test(tag)) {
+          const level = Number(tag.slice(1));
+          out.push(`${"#".repeat(level)} ${inlineNodeToMarkdown(el).trim()}`);
+          return;
+        }
+
+        if (tag === "p") {
+          out.push(inlineNodeToMarkdown(el).trim());
+          return;
+        }
+
+        if (tag === "ul" || tag === "ol") {
+          out.push(listNodeToMarkdown(el));
+          return;
+        }
+
+        if (tag === "blockquote") {
+          const text = inlineNodeToMarkdown(el).trim();
+          out.push(
+            text
+              .split(/\n+/)
+              .map((line) => `> ${line.trim()}`)
+              .join("\n>\n")
+          );
+          return;
+        }
+
+        if (tag === "pre") {
+          const codeEl = el.querySelector("code");
+          const raw = codeEl ? codeEl.textContent : el.textContent;
+          out.push("```\n" + (raw || "").trim() + "\n```");
+          return;
+        }
+
+        if (tag === "hr") {
+          out.push("---");
+        }
+      });
+
+      return out.filter(Boolean).join("\n\n") + "\n";
+    }
+
+    async function saveEditedMarkdown(keepEditMode = false) {
+      const newMd = serializeArticleToMarkdown();
+      const btn = document.getElementById("btn-save-md");
+      const statusEl = document.getElementById("edit-save-status");
+      if (btn) btn.textContent = "Đang lưu...";
+      try {
+        let saveOk = false;
+        if (typeof STUDIO_CONFIG.onSaveDoc === "function") {
+          await STUDIO_CONFIG.onSaveDoc({ path: currentDocPath, content: newMd, author: currentUserEmail });
+          saveOk = true;
+        } else if (STUDIO_CONFIG.embeddedDocs && !WORKER_API_BASE) {
+          STUDIO_CONFIG.embeddedDocs[currentDocPath] = newMd;
+          saveOk = true;
+        } else {
+          const resp = await fetch(`${WORKER_API_BASE}/api/srs-book/doc`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify({ path: currentDocPath, content: newMd })
+          });
+          saveOk = resp.ok;
+        }
+        if (saveOk) {
+          if (STUDIO_CONFIG.embeddedDocs) {
+            STUDIO_CONFIG.embeddedDocs[currentDocPath] = newMd;
+          }
+          currentRawMarkdown = newMd;
+          const nowStr = new Date().toTimeString().slice(0, 5);
+          if (statusEl) {
+            statusEl.textContent = `(Đã lưu lúc ${nowStr})`;
+          }
+          if (!keepEditMode) {
+            isBlockEditMode = false;
+            document.getElementById("markdown-editor-box").classList.add("hidden");
+            updateEditModeButtonUI();
+            await renderMarkdownIntoArticle(currentRawMarkdown);
+          }
+        }
+      } finally {
+        if (btn) btn.textContent = "Lưu thay đổi";
+      }
+    }
+
+    window.SrsWebviewStudio = {
+      version: "1.0.0",
+      config: STUDIO_CONFIG,
+      configure(overrides = {}) {
+        Object.assign(STUDIO_CONFIG, overrides);
+        applyStudioBranding();
+        return this;
+      },
+      openDoc: (docPath) => openDoc(docPath),
+      getCurrentPath: () => currentDocPath,
+      getMarkdown: () => serializeArticleToMarkdown(),
+      setMarkdown: (md) => renderMarkdownIntoArticle(md),
+      toggleEditMode: () => toggleEditPage(),
+      save: (keepEditMode = false) => saveEditedMarkdown(keepEditMode),
+      parseMermaidToFlowGraph: (raw) => parseMermaidToFlowGraph(raw),
+      serializeFlowGraphToMermaid: (graph) => serializeFlowGraphToMermaid(graph)
+    };
+
+    function updateCommentBadges() {}
+
+    function handleSearchFilter(val) {
+      searchFilter = val || "";
+      renderSidebarTree();
+    }
+
+    async function toggleTheme() {
+      document.documentElement.classList.toggle("dark");
+      configureMermaidTheme();
+      if (currentRawMarkdown) {
+        await renderMarkdownIntoArticle(currentRawMarkdown);
+      }
+    }
+
+    window.addEventListener("keydown", (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        document.getElementById("gb-search-input").focus();
+      }
+    });
+
+    window.addEventListener("DOMContentLoaded", () => {
+      checkAuthAndBoot();
+    });
+  </script>
+</body>
+</html>

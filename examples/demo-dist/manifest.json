@@ -1,0 +1,135 @@
+{
+  "title": "SRS WebView Studio (Live Demo)",
+  "generated_at": "2026-10-30T08:10:24Z",
+  "groups": [
+    {
+      "id": "sec-1",
+      "title": "I. Tổng quan & Quyết định Kiến trúc",
+      "items": [
+        {
+          "title": "Tổng quan Hệ thống Thương mại Điện tử",
+          "path": "_index.md",
+          "children": []
+        },
+        {
+          "title": "Quyết định Kiến trúc đã chốt (ADR)",
+          "path": "decisions.md",
+          "children": []
+        },
+        {
+          "title": "Câu hỏi mở & Điểm chờ chốt",
+          "path": "open-questions.md",
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "sec-2",
+      "title": "II. Phân hệ Đặt hàng & Thanh toán (Order & Checkout)",
+      "items": [
+        {
+          "title": "1.1-smart-checkout - Đặt hàng nhanh & Giữ tồn kho thời gian thực",
+          "path": "features/1.1-smart-checkout/brd.md",
+          "children": [
+            {
+              "title": "Nghiệp vụ (BRD)",
+              "path": "features/1.1-smart-checkout/brd.md"
+            },
+            {
+              "title": "Kỹ thuật & API (FSD)",
+              "path": "features/1.1-smart-checkout/fsd.md"
+            },
+            {
+              "title": "Kịch bản Kiểm thử (Test Spec)",
+              "path": "features/1.1-smart-checkout/test-spec.md"
+            }
+          ]
+        },
+        {
+          "title": "1.2-payment-orchestrator - Điều phối Cổng Thanh toán Đa kênh & Đối soát",
+          "path": "features/1.2-payment-orchestrator/brd.md",
+          "children": [
+            {
+              "title": "Nghiệp vụ (BRD)",
+              "path": "features/1.2-payment-orchestrator/brd.md"
+            },
+            {
+              "title": "Kỹ thuật & API (FSD)",
+              "path": "features/1.2-payment-orchestrator/fsd.md"
+            },
+            {
+              "title": "Kịch bản Kiểm thử (Test Spec)",
+              "path": "features/1.2-payment-orchestrator/test-spec.md"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "id": "sec-1",
+      "title": "I. Tổng quan & Quyết định Kiến trúc",
+      "items": [
+        {
+          "title": "Tổng quan Hệ thống Thương mại Điện tử",
+          "path": "_index.md",
+          "children": []
+        },
+        {
+          "title": "Quyết định Kiến trúc đã chốt (ADR)",
+          "path": "decisions.md",
+          "children": []
+        },
+        {
+          "title": "Câu hỏi mở & Điểm chờ chốt",
+          "path": "open-questions.md",
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "sec-2",
+      "title": "II. Phân hệ Đặt hàng & Thanh toán (Order & Checkout)",
+      "items": [
+        {
+          "title": "1.1-smart-checkout - Đặt hàng nhanh & Giữ tồn kho thời gian thực",
+          "path": "features/1.1-smart-checkout/brd.md",
+          "children": [
+            {
+              "title": "Nghiệp vụ (BRD)",
+              "path": "features/1.1-smart-checkout/brd.md"
+            },
+            {
+              "title": "Kỹ thuật & API (FSD)",
+              "path": "features/1.1-smart-checkout/fsd.md"
+            },
+            {
+              "title": "Kịch bản Kiểm thử (Test Spec)",
+              "path": "features/1.1-smart-checkout/test-spec.md"
+            }
+          ]
+        },
+        {
+          "title": "1.2-payment-orchestrator - Điều phối Cổng Thanh toán Đa kênh & Đối soát",
+          "path": "features/1.2-payment-orchestrator/brd.md",
+          "children": [
+            {
+              "title": "Nghiệp vụ (BRD)",
+              "path": "features/1.2-payment-orchestrator/brd.md"
+            },
+            {
+              "title": "Kỹ thuật & API (FSD)",
+              "path": "features/1.2-payment-orchestrator/fsd.md"
+            },
+            {
+              "title": "Kịch bản Kiểm thử (Test Spec)",
+              "path": "features/1.2-payment-orchestrator/test-spec.md"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "total_files": 9
+}
