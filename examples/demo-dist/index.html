@@ -583,6 +583,30 @@
       stroke-width: 2.8px;
       opacity: 1;
     }
+    .gb-diff-ins {
+      background: rgba(16, 185, 129, 0.18);
+      color: #065f46;
+      text-decoration: none;
+      border-bottom: 2px solid #10b981;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    html.dark .gb-diff-ins {
+      background: rgba(16, 185, 129, 0.22);
+      color: #6ee7b7;
+    }
+    .gb-diff-del {
+      background: rgba(244, 63, 94, 0.15);
+      color: #9f1239;
+      text-decoration: line-through;
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+    html.dark .gb-diff-del {
+      background: rgba(244, 63, 94, 0.22);
+      color: #fda4af;
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -760,6 +784,20 @@
         </nav>
 
         <div class="flex items-center gap-2 shrink-0">
+          <!-- Version History & Audit Log Button (Google Docs style) -->
+          <button
+            onclick="openVersionHistoryModal()"
+            id="btn-version-history"
+            title="Xem lịch sử phiên bản, ai sửa gì và khôi phục về bản cũ"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border gb-border-strong hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300"
+          >
+            <svg class="w-3.5 h-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>
+            </svg>
+            <span>Lịch sử</span>
+            <span id="version-count-badge" class="px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[10px] font-semibold leading-none">v1</span>
+          </button>
+
           <!-- Copy Markdown Button -->
           <button
             onclick="copyCurrentMarkdown()"
@@ -873,8 +911,108 @@
     </button>
   </div>
 
+  <!-- GOOGLE DOCS-STYLE VERSION HISTORY & AUDIT LOG MODAL -->
+  <div
+    id="version-history-modal"
+    onclick="if (event.target === this) closeVersionHistoryModal()"
+    class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm items-center justify-center p-3 sm:p-6"
+  >
+    <div class="w-full max-w-6xl h-[86vh] bg-white dark:bg-[#0f131a] border gb-border-strong rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+      <!-- Modal Top Header -->
+      <div class="h-14 px-5 border-b gb-border flex items-center justify-between gap-3 shrink-0 gb-surface">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-xl bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-semibold text-slate-900 dark:text-white truncate">Lịch sử phiên bản &amp; Nhật ký chỉnh sửa</h3>
+              <span id="vh-doc-path-label" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[11px] font-mono text-slate-500 truncate max-w-[260px]">_index.md</span>
+            </div>
+            <p class="text-[11px] text-slate-500">Theo dõi ai đã sửa nội dung gì, so sánh trực quan như Google Docs và khôi phục về bất kỳ phiên bản nào</p>
+          </div>
+        </div>
+
+        <!-- View Mode Tabs -->
+        <div class="inline-flex items-center p-0.5 rounded-xl border gb-border-strong bg-white dark:bg-slate-900 shrink-0 text-xs">
+          <button
+            type="button"
+            id="vh-tab-diff"
+            onclick="switchVersionHistoryTab('diff')"
+            class="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold text-xs"
+          >
+            So sánh thay đổi
+          </button>
+          <button
+            type="button"
+            id="vh-tab-preview"
+            onclick="switchVersionHistoryTab('preview')"
+            class="px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white font-medium text-xs"
+          >
+            Nội dung bản chụp
+          </button>
+          <button
+            type="button"
+            id="vh-tab-audit"
+            onclick="switchVersionHistoryTab('audit')"
+            class="px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white font-medium text-xs"
+          >
+            Nhật ký toàn trang
+          </button>
+        </div>
+
+        <!-- Revert & Close Actions -->
+        <div class="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            id="btn-revert-version"
+            onclick="revertSelectedVersion()"
+            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition disabled:opacity-40 disabled:pointer-events-none"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
+            </svg>
+            <span id="btn-revert-version-label">Khôi phục phiên bản này</span>
+          </button>
+          <button
+            type="button"
+            onclick="closeVersionHistoryModal()"
+            title="Đóng cửa sổ lịch sử (Esc)"
+            aria-label="Đóng cửa sổ lịch sử"
+            class="w-8 h-8 rounded-xl border gb-border-strong hover:bg-slate-100 dark:hover:bg-slate-800 inline-flex items-center justify-center text-slate-500"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Main 2-Pane Split -->
+      <div class="flex-1 flex min-h-0 overflow-hidden">
+        <!-- Left/Main Comparison & Diff Viewer -->
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <!-- Selected Version Metadata Sub-header -->
+          <div id="vh-selected-meta" class="px-5 py-3 border-b gb-border flex flex-wrap items-center justify-between gap-2 bg-slate-50/50 dark:bg-slate-900/30 text-xs"></div>
+
+          <!-- Scrollable Diff / Preview / Audit Table -->
+          <div id="vh-main-body" class="flex-1 overflow-y-auto p-5 space-y-4"></div>
+        </div>
+
+        <!-- Right Sidebar: Version Timeline (Google Docs style) -->
+        <aside class="w-80 shrink-0 border-l gb-border gb-surface flex flex-col min-h-0">
+          <div class="px-4 py-3 border-b gb-border flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-700 dark:text-slate-200">Dòng thời gian phiên bản</span>
+            <span id="vh-timeline-count" class="text-[11px] font-medium text-slate-400">1 phiên bản</span>
+          </div>
+          <div id="vh-timeline-list" class="flex-1 overflow-y-auto p-3 space-y-2"></div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
   <script>
-    window.__SRS_STUDIO_CONFIG__ = window.__SRS_STUDIO_CONFIG__ || {"title": "SRS WebView Studio (Live Demo)", "breadcrumbRoot": "SRS WebView Studio (Live Demo)", "allowedDomain": "*", "authRequired": false, "localUserLabel": "Static WebView", "apiBaseUrl": "", "defaultDocPath": "_index.md", "defaultSectionIndex": 0, "embeddedManifest": {"title": "SRS WebView Studio (Live Demo)", "generated_at": "2026-10-30T08:42:07Z", "groups": [{"id": "sec-1", "title": "I. Tổng quan & Quyết định Kiến trúc", "items": [{"title": "Tổng quan Hệ thống Thương mại Điện tử", "path": "_index.md", "children": []}, {"title": "Quyết định Kiến trúc đã chốt (ADR)", "path": "decisions.md", "children": []}, {"title": "Câu hỏi mở & Điểm chờ chốt", "path": "open-questions.md", "children": []}]}, {"id": "sec-2", "title": "II. Phân hệ Đặt hàng & Thanh toán (Order & Checkout)", "items": [{"title": "1.1-smart-checkout - Đặt hàng nhanh & Giữ tồn kho thời gian thực", "path": "features/1.1-smart-checkout/brd.md", "children": [{"title": "Nghiệp vụ (BRD)", "path": "features/1.1-smart-checkout/brd.md"}, {"title": "Kỹ thuật & API (FSD)", "path": "features/1.1-smart-checkout/fsd.md"}, {"title": "Kịch bản Kiểm thử (Test Spec)", "path": "features/1.1-smart-checkout/test-spec.md"}]}, {"title": "1.2-payment-orchestrator - Điều phối Cổng Thanh toán Đa kênh & Đối soát", "path": "features/1.2-payment-orchestrator/brd.md", "children": [{"title": "Nghiệp vụ (BRD)", "path": "features/1.2-payment-orchestrator/brd.md"}, {"title": "Kỹ thuật & API (FSD)", "path": "features/1.2-payment-orchestrator/fsd.md"}, {"title": "Kịch bản Kiểm thử (Test Spec)", "path": "features/1.2-payment-orchestrator/test-spec.md"}]}]}], "sections": [{"id": "sec-1", "title": "I. Tổng quan & Quyết định Kiến trúc", "items": [{"title": "Tổng quan Hệ thống Thương mại Điện tử", "path": "_index.md", "children": []}, {"title": "Quyết định Kiến trúc đã chốt (ADR)", "path": "decisions.md", "children": []}, {"title": "Câu hỏi mở & Điểm chờ chốt", "path": "open-questions.md", "children": []}]}, {"id": "sec-2", "title": "II. Phân hệ Đặt hàng & Thanh toán (Order & Checkout)", "items": [{"title": "1.1-smart-checkout - Đặt hàng nhanh & Giữ tồn kho thời gian thực", "path": "features/1.1-smart-checkout/brd.md", "children": [{"title": "Nghiệp vụ (BRD)", "path": "features/1.1-smart-checkout/brd.md"}, {"title": "Kỹ thuật & API (FSD)", "path": "features/1.1-smart-checkout/fsd.md"}, {"title": "Kịch bản Kiểm thử (Test Spec)", "path": "features/1.1-smart-checkout/test-spec.md"}]}, {"title": "1.2-payment-orchestrator - Điều phối Cổng Thanh toán Đa kênh & Đối soát", "path": "features/1.2-payment-orchestrator/brd.md", "children": [{"title": "Nghiệp vụ (BRD)", "path": "features/1.2-payment-orchestrator/brd.md"}, {"title": "Kỹ thuật & API (FSD)", "path": "features/1.2-payment-orchestrator/fsd.md"}, {"title": "Kịch bản Kiểm thử (Test Spec)", "path": "features/1.2-payment-orchestrator/test-spec.md"}]}]}], "total_files": 9}, "embeddedDocs": {"_index.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# Tổng quan Hệ thống Thương mại Điện tử (SRS Demo)\n\nChào mừng bạn đến với bản dùng thử công khai của **SRS WebView Studio** (`srs-webview-studio`). Bạn có thể bấm nút **Chỉnh sửa** ở góc trên bên phải bài viết để trải nghiệm sửa văn bản theo từng đoạn (`Per-Block WYSIWYG`) và kéo thả sơ đồ luồng trực quan (`Interactive Flow Canvas`).\n\n## 1. Sơ đồ kiến trúc tổng thể\n\n### Luồng tương tác giữa các phân hệ\n\n```mermaid\nflowchart TB\n  subgraph Actors[\"1. Người dùng & Đối tác\"]\n    R1[\"Khách mua hàng (Web / App)\"]\n    R2[\"Vận hành viên & Kế toán\"]\n  end\n\n  subgraph Core[\"2. Chuỗi xử lý đơn hàng trung tâm\"]\n    B1[\"1.1 Giỏ hàng & Giữ tồn kho tạm thời (TTL 15 phút)\"]\n    B2[\"1.2 Điều phối cổng thanh toán QR / Thẻ / Ví\"]\n    B3[\"1.3 Xác nhận đơn & Phát sự kiện xuất kho\"]\n  end\n\n  subgraph Outcome[\"3. Kết quả đầu ra\"]\n    O1[\"Đơn hàng đồng bộ tức thì\"]\n    O2[\"Sổ cái đối soát tự động\"]\n  end\n\n  R1 & R2 --> B1\n  B1 --> B2 --> B3 --> O1 & O2\n```\n\n## 2. Cấu trúc bộ tài liệu chuẩn cho mỗi tính năng\n\nMỗi tính năng trong kho tài liệu được tách thành 3 góc nhìn rõ ràng kèm bảng quyết định kiến trúc:\n\n| Loại tài liệu | Người đọc chính | Nội dung trọng tâm |\n|---|---|---|\n| **Nghiệp vụ (`brd.md`)** | Quản lý sản phẩm, Phân tích nghiệp vụ, Khách hàng | Bối cảnh bài toán, quy tắc nghiệp vụ, luồng người dùng và ví dụ số liệu thực tế |\n| **Kỹ thuật & API (`fsd.md`)** | Lập trình viên Backend, Frontend, Mobile | Mô hình cơ sở dữ liệu, hợp đồng giao tiếp API, sơ đồ tuần tự và cơ chế khóa đồng thời |\n| **Kịch bản Kiểm thử (`test-spec.md`)** | Kỹ sư Kiểm thử (QA) | Các ca kiểm thử chuẩn `Given / When / Then` phủ đủ luồng chính và trường hợp biên |\n| **Quyết định đã chốt (`decisions.md`)** | Toàn bộ đội dự án | Lưu vết quyết định, lý do lựa chọn ([D01](decisions.md), [D02](decisions.md), [D03](decisions.md)) và các phương án đã bác bỏ |\n\n## 3. Hướng dẫn thử nghiệm nhanh trên trang Demo này\n\n1. **Đóng/mở mục lục linh hoạt**: Bấm nút `Thu gọn / Mở hết` hoặc biểu tượng ẩn cột trên thanh **Danh mục tài liệu** (bên trái) và **Mục lục trang** (bên phải).\n2. **Nhảy thẳng tới dòng quyết định**: Bấm vào mã quyết định như [D01](decisions.md) hoặc [D02](decisions.md) để tự động mở bảng quyết định, cuộn tới đúng dòng đó và tô sáng.\n3. **Sửa trực quan từng đoạn và kéo thả sơ đồ**: Bấm nút **Chỉnh sửa**, sau đó bấm biểu tượng bút chì ở góc phải của bất kỳ đoạn văn, bảng biểu hoặc sơ đồ nào để chỉnh sửa trực tiếp.\n", "decisions.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# Quyết định Kiến trúc đã chốt (Architecture Decisions)\n\nBảng dưới đây lưu vết các quyết định nghiệp vụ và kỹ thuật cốt lõi của hệ thống mẫu. Bấm nút **Chỉnh sửa** để thử sửa trực tiếp từng ô trong bảng.\n\n## 1. Bảng quyết định kiến trúc\n\n| Mã | Quyết định đã chốt | Lý do lựa chọn | Phương án khác đã xét | Người chốt | Ngày chốt | Ghi chú áp dụng |\n|---|---|---|---|---|---|---|\n| D01 | **Giữ tồn kho tạm thời bằng khóa nguyên tử trên Redis kèm bản ghi đối chiếu trong PostgreSQL trong 15 phút khi khách bấm Thanh toán.** Nếu sau 15 phút chưa nhận được biên lai thanh toán thành công, tiến trình nền tự động giải phóng tồn kho về giỏ hàng chung. | **(1) Chống bán vượt tồn kho (Overselling)** trong các đợt mở bán Flash Sale có hàng nghìn lượt bấm cùng giây. **(2) Tự động thu hồi hàng giữ chỗ** khi khách thoát trình duyệt ở bước quét mã QR thanh toán mà không làm nghẽn khóa cơ sở dữ liệu chính. | (a) Chỉ trừ tồn kho sau khi thanh toán xong - dẫn tới 2 khách cùng thanh toán thành công cho 1 sản phẩm cuối cùng. (b) Khóa dòng trực tiếp bằng `SELECT FOR UPDATE` xuyên suốt 15 phút chờ khách quét QR - làm cạn kiệt kết nối cơ sở dữ liệu. | Hội đồng Kiến trúc | 2026-10-20 | Áp dụng tại [1.1 BRD](features/1.1-smart-checkout/brd.md) và [1.1 FSD](features/1.1-smart-checkout/fsd.md) |\n| D02 | **Mọi yêu cầu tạo đơn hàng và khởi tạo giao dịch thanh toán bắt buộc truyền khóa chống trùng lặp (`Idempotency-Key` theo chuẩn UUID v4) có hiệu lực 24 giờ.** Khi máy khách gửi lại cùng khóa do mạng chập chờn, máy chủ trả về đúng kết quả của lần xử lý đầu tiên. | Ngăn chặn triệt để lỗi tạo đúp 2 đơn hàng hoặc trừ tiền 2 lần khi người dùng bấm đúp nút *Đặt hàng* trên mạng di động 4G có độ trễ cao. | Chặn bấm nút ở riêng phía giao diện người dùng - không đủ an toàn khi ứng dụng tự động thử lại gói tin mạng hoặc khi có yêu cầu gọi thẳng vào API. | Tech Lead | 2026-10-22 | Áp dụng tại [1.1 FSD](features/1.1-smart-checkout/fsd.md) và [1.2 FSD](features/1.2-payment-orchestrator/fsd.md) |\n| D03 | **Điều phối cổng thanh toán theo mô hình ưu tiên VietQR động làm kênh mặc định, tự động chuyển dự phòng sang cổng Thẻ nội địa / Ví điện tử sau 10 giây nếu cổng chính bảo trì.** | Tối ưu phí giao dịch thấp nhất qua kênh chuyển khoản QR định danh từng đơn hàng và đảm bảo tỷ lệ thanh toán thành công đạt trên 99,5% ngay cả khi một ngân hàng đối tác gặp sự cố. | Gắn cứng một nhà cung cấp cổng thanh toán duy nhất - toàn bộ luồng thanh toán bị gián đoạn khi cổng đó bảo trì định kỳ. | Product Owner | 2026-10-25 | Áp dụng tại [1.2 BRD](features/1.2-payment-orchestrator/brd.md) |\n\n## 2. Ghi chú tra cứu\n\n- Khi một quyết định cũ được thay thế bởi quyết định mới, giữ nguyên dòng cũ và gắn nhãn tham chiếu sang mã quyết định mới để bảo toàn lịch sử đối chiếu.\n", "open-questions.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# Câu hỏi mở & Điểm chờ chốt (Open Questions)\n\nDanh sách các câu hỏi nghiệp vụ đang chờ xác nhận hoặc đã chuyển sang bảng quyết định.\n\n## 1. Danh sách câu hỏi\n\n| Mã | Câu hỏi cần chốt | Phân hệ liên quan | Người phụ trách | Trạng thái | Kết quả / Tham chiếu |\n|---|---|---|---|---|---|\n| Q01 | Thời gian giữ tồn kho cho đơn hàng Flash Sale có cần rút ngắn từ 15 phút xuống 5 phút hay không? | `1.1 Đặt hàng nhanh` | Product Owner | Đã chốt | Giữ thống nhất 15 phút ở giai đoạn 1 theo [D01](decisions.md), cho phép cấu hình động theo từng chiến dịch ở giai đoạn 2 |\n| Q02 | Khi khách hàng thanh toán thừa hoặc thiếu số tiền qua mã chuyển khoản thủ công thì xử lý tự động hay chuyển Kế toán duyệt tay? | `1.2 Điều phối Thanh toán` | Kế toán trưởng | Đang chờ chốt | Đề xuất: lệch dưới 1.000đ tự động ghi nhận hoàn tất; lệch từ 1.000đ trở lên đẩy vào hàng đợi Kế toán hậu kiểm |\n", "features/1.1-smart-checkout/brd.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# 1.1 Đặt hàng nhanh & Giữ tồn kho thời gian thực - BRD\n\n## 1. Bối cảnh & Mục tiêu\n\n### 1.1 Vấn đề nghiệp vụ\n\nTrong các khung giờ cao điểm hoặc chiến dịch khuyến mãi lớn, nhiều khách hàng cùng bấm đặt mua những sản phẩm cuối cùng trong kho. Nếu hệ thống không giữ chỗ tồn kho ngay tại thời điểm tạo đơn mà chờ tới khi cổng thanh toán báo về mới trừ kho, khách hàng đã chuyển tiền có nguy cơ bị hủy đơn do hết hàng.\n\n### 1.2 Giải pháp nghiệp vụ\n\nÁp dụng cơ chế **Giữ tồn kho tạm thời 15 phút** ngay khi khách hàng bấm nút *Đặt hàng* theo quyết định [D01](../../decisions.md) và chống tạo trùng đơn bằng khóa định danh lượt bấm theo [D02](../../decisions.md).\n\n## 2. Sơ đồ luồng nghiệp vụ\n\n### 2.1 Sơ đồ tổng quan luồng đặt hàng\n\n```mermaid\nflowchart TB\n  subgraph Actors[\"1. Vai trò tham gia\"]\n    U1[\"Khách mua hàng\"]\n    U2[\"Hệ thống Quản lý Kho\"]\n  end\n\n  subgraph Flow[\"2. Quy trình đặt hàng & giữ chỗ\"]\n    S1[\"2.1 Kiểm tra điều kiện khuyến mãi & địa chỉ giao\"]\n    S2[\"2.2 Khóa tạm tồn kho 15 phút cho từng mã hàng\"]\n    S3[\"2.3 Sinh mã QR thanh toán & theo dõi thời gian\"]\n    S4[\"2.4 Chốt đơn thành công hoặc thu hồi kho quá hạn\"]\n  end\n\n  subgraph Result[\"3. Kết quả nghiệp vụ\"]\n    R1[\"Đơn hàng xác nhận chính xác 100%\"]\n    R2[\"Không phát sinh bán vượt số lượng tồn\"]\n  end\n\n  U1 & U2 --> S1\n  S1 --> S2 --> S3 --> S4 --> R1 & R2\n```\n\n### 2.2 Quy tắc tính toán & giới hạn\n\n| Hạng mục | Quy tắc áp dụng | Ví dụ minh họa |\n|---|---|---|\n| **Thời gian giữ hàng tối đa** | 15 phút kể từ giây đơn hàng chuyển sang trạng thái *Chờ thanh toán* | Đơn tạo lúc `10:00:00` sẽ hết hạn giữ chỗ lúc `10:15:00` |\n| **Số lượng tối đa mỗi đơn** | Tối đa 20 dòng sản phẩm khác nhau trong một đơn hàng | Giỏ hàng có 5 mẫu áo (mỗi mẫu 2 chiếc) được tính là 5 dòng sản phẩm |\n| **Tự động hoàn tồn kho** | Ngay khi khách bấm *Hủy đơn* hoặc quá 15 phút chưa thanh toán, số lượng giữ tạm được cộng trả lại kho khả dụng | Kho còn 10 chiếc, khách giữ 2 chiếc (còn 8); sau 15 phút không thanh toán kho tự về lại 10 chiếc |\n", "features/1.1-smart-checkout/fsd.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# 1.1 Đặt hàng nhanh & Giữ tồn kho thời gian thực - FSD\n\n## 1. Kiến trúc kỹ thuật & Luồng xử lý\n\n### 1.1 Sơ đồ kiến trúc thành phần\n\n```mermaid\nflowchart LR\n  subgraph Client[\"Tầng Giao diện (Web / App)\"]\n    UI[\"Màn hình Thanh toán & Đếm ngược 15 phút\"]\n  end\n\n  subgraph API[\"Tầng Điều phối API\"]\n    EP[\"POST /api/v1/orders/checkout\"]\n    IDEM[\"Middleware kiểm tra Idempotency-Key\"]\n  end\n\n  subgraph Storage[\"Tầng Lưu trữ & Hàng đợi\"]\n    REDIS[\"Redis Atomic Stock Lock\"]\n    PG[\"PostgreSQL (orders, inventory_reservations)\"]\n  end\n\n  UI --> EP --> IDEM --> REDIS --> PG\n```\n\n### 1.2 Sơ đồ tuần tự xử lý đặt hàng\n\n```mermaid\nsequenceDiagram\n  autonumber\n  actor User as Khách hàng\n  participant API as Checkout API\n  participant Redis as Redis Stock Guard\n  participant DB as PostgreSQL\n\n  User->>API: POST /api/v1/orders/checkout (Idempotency-Key)\n  API->>Redis: DECRBY tồn kho khả dụng (TTL 900s)\n  Redis-->>API: Trả về số dư tồn kho >= 0\n  API->>DB: INSERT orders & inventory_reservations (PENDING)\n  DB-->>API: Trả về order_id & expires_at\n  API-->>User: HTTP 201 Created (kèm thông tin QR thanh toán)\n```\n\n## 2. Đặc tả Hợp đồng API\n\n| Phương thức & Đường dẫn | Đầu vào chính | Phản hồi thành công | Mã lỗi nghiệp vụ |\n|---|---|---|---|\n| `POST /api/v1/orders/checkout` | Header `Idempotency-Key`, mảng `items[{sku, qty}]`, `shipping_address_id` | `201 Created` kèm `order_id`, `status = \"PENDING_PAYMENT\"`, `expires_at` | `409 OUT_OF_STOCK`, `422 INVALID_VOUCHER` |\n| `POST /api/v1/orders/{id}/cancel` | `reason` | `200 OK` kèm trạng thái `CANCELLED` và hoàn lại tồn kho tức thì | `400 ORDER_ALREADY_PAID` |\n", "features/1.1-smart-checkout/test-spec.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# 1.1 Đặt hàng nhanh & Giữ tồn kho thời gian thực - Test Spec\n\n## 1. Danh mục Kịch bản Kiểm thử\n\n### 1.1 Kiểm thử luồng chính và cạnh tranh tồn kho\n\n| Mã ca kiểm thử | Mức độ | Điều kiện đầu (Given) | Thao tác (When) | Kết quả kỳ vọng (Then) |\n|---|---|---|---|---|\n| `TC-1.1-01` | 🟢 Luồng chuẩn | Sản phẩm `SKU-01` còn tồn khả dụng `10` chiếc, khách đã chọn địa chỉ giao hợp lệ | Khách bấm *Đặt hàng* với số lượng `2` chiếc | Tạo đơn `PENDING_PAYMENT` thành công, tồn khả dụng giảm ngay về `8` chiếc và đồng hồ đếm ngược 15 phút bắt đầu chạy |\n| `TC-1.1-02` | 🟡 Trường hợp biên | Khách gửi yêu cầu đặt hàng kèm `Idempotency-Key = K1`, sau đó bấm đúp gửi lại đúng `K1` lần thứ hai | Máy chủ nhận 2 yêu cầu trùng khóa `K1` trong vòng 2 giây | Chỉ tạo duy nhất 1 đơn hàng và chỉ trừ tạm `2` chiếc trong kho; lần gọi thứ hai trả về lại kết quả của đơn đầu tiên |\n| `TC-1.1-03` | 🔴 Luồng lỗi / Cạnh tranh | Sản phẩm `SKU-99` chỉ còn đúng `1` chiếc cuối cùng trong kho | Hai khách hàng `A` và `B` cùng bấm *Đặt hàng* `1` chiếc ở cùng một thời điểm | Đúng 1 người nhận mã `201 Created`, người còn lại nhận thông báo `409 OUT_OF_STOCK` (tồn kho không bao giờ âm) |\n| `TC-1.1-04` | 🟡 Hết hạn giữ chỗ | Đơn hàng đang ở trạng thái `PENDING_PAYMENT` giữ `2` chiếc `SKU-01` | Quá 15 phút khách chưa thanh toán | Hệ thống tự động chuyển đơn sang `EXPIRED` và cộng trả `2` chiếc về lại tồn kho khả dụng |\n", "features/1.2-payment-orchestrator/brd.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# 1.2 Điều phối Cổng Thanh toán Đa kênh & Đối soát - BRD\n\n## 1. Bối cảnh & Mục tiêu\n\nHệ thống cần kết nối nhiều kênh thanh toán (mã VietQR động, thẻ nội địa NAPAS, thẻ quốc tế và ví điện tử) với khả năng tự động chuyển kênh dự phòng khi một đối tác ngân hàng bảo trì theo quyết định [D03](../../decisions.md).\n\n## 2. Sơ đồ luồng điều phối thanh toán\n\n```mermaid\nflowchart TB\n  subgraph Channels[\"1. Kênh thanh toán người dùng chọn\"]\n    C1[\"Quét mã VietQR động\"]\n    C2[\"Thẻ ngân hàng / Ví điện tử\"]\n  end\n\n  subgraph Orchestrator[\"2. Bộ điều phối & Đối soát\"]\n    P1[\"2.1 Sinh mã giao dịch định danh duy nhất\"]\n    P2[\"2.2 Kiểm tra sức khỏe cổng chính & chuyển dự phòng\"]\n    P3[\"2.3 Xác thực chữ ký số Webhook & khớp số tiền\"]\n  end\n\n  subgraph Ledger[\"3. Kết quả hạch toán\"]\n    L1[\"Cập nhật đơn Đã thanh toán tức thì\"]\n    L2[\"Ghi bút toán sổ cái đối soát tự động\"]\n  end\n\n  C1 & C2 --> P1\n  P1 --> P2 --> P3 --> L1 & L2\n```\n", "features/1.2-payment-orchestrator/fsd.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# 1.2 Điều phối Cổng Thanh toán Đa kênh & Đối soát - FSD\n\n## 1. Sơ đồ kiến trúc xử lý Webhook Thanh toán\n\n```mermaid\nflowchart LR\n  GW[\"Cổng Thanh toán Đối tác\"] --> WH[\"POST /api/v1/payments/webhook\"]\n  WH --> SIG[\"Kiểm tra chữ ký HMAC-SHA256\"]\n  SIG --> TX[\"Khóa giao dịch & Cập nhật trạng thái PAID\"]\n  TX --> EVT[\"Phát sự kiện xuất kho & gửi thông báo\"]\n```\n\n## 2. Quy tắc bảo mật & chống ghi đè\n\n1. **Xác thực chữ ký số (`HMAC-SHA256`)**: Mọi thông báo kết quả thanh toán từ đối tác bắt buộc phải khớp chữ ký mật mã và nằm trong cửa sổ thời gian 5 phút.\n2. **Xử lý bất biến một chiều**: Khi đơn hàng đã chuyển sang trạng thái `PAID`, các thông báo trùng lặp đến sau chỉ trả về `200 OK` mà không sinh thêm bút toán mới.\n", "features/1.2-payment-orchestrator/test-spec.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# 1.2 Điều phối Cổng Thanh toán Đa kênh & Đối soát - Test Spec\n\n## 1. Kịch bản kiểm thử thanh toán & đối soát\n\n| Mã ca kiểm thử | Mức độ | Điều kiện đầu (Given) | Thao tác (When) | Kết quả kỳ vọng (Then) |\n|---|---|---|---|---|\n| `TC-1.2-01` | 🟢 Luồng chuẩn | Đơn hàng `ORD-101` cần thanh toán `500.000đ` đang ở trạng thái `PENDING_PAYMENT` | Webhook đối tác gửi biên lai thành công đúng `500.000đ` kèm chữ ký hợp lệ | Đơn hàng chuyển sang `PAID` trong dưới 1 giây, khóa giữ tồn kho chuyển thành xuất kho chính thức |\n| `TC-1.2-02` | 🔴 Bảo mật | Đơn hàng `ORD-101` đang chờ thanh toán | Kẻ tấn công gửi gói tin giả mạo vào `/api/v1/payments/webhook` với chữ ký sai | Hệ thống từ chối với mã `401 Invalid Signature` và ghi nhật ký cảnh báo bảo mật |\n"}};
+    window.__SRS_STUDIO_CONFIG__ = window.__SRS_STUDIO_CONFIG__ || {"title": "SRS Docs Studio", "breadcrumbRoot": "Tài liệu SRS", "allowedDomain": "*", "authRequired": false, "localUserLabel": "Static WebView", "apiBaseUrl": "", "defaultDocPath": "_index.md", "defaultSectionIndex": 0, "embeddedManifest": {"title": "SRS Docs Studio", "generated_at": "2026-10-30T10:17:39Z", "groups": [{"id": "sec-1", "title": "I. Tổng quan & Quyết định Kiến trúc", "items": [{"title": "Tổng quan Hệ thống Thương mại Điện tử", "path": "_index.md", "children": []}, {"title": "Quyết định Kiến trúc đã chốt (ADR)", "path": "decisions.md", "children": []}, {"title": "Câu hỏi mở & Điểm chờ chốt", "path": "open-questions.md", "children": []}]}, {"id": "sec-2", "title": "II. Phân hệ Đặt hàng & Thanh toán (Order & Checkout)", "items": [{"title": "1.1-smart-checkout - Đặt hàng nhanh & Giữ tồn kho thời gian thực", "path": "features/1.1-smart-checkout/brd.md", "children": [{"title": "Nghiệp vụ (BRD)", "path": "features/1.1-smart-checkout/brd.md"}, {"title": "Kỹ thuật & API (FSD)", "path": "features/1.1-smart-checkout/fsd.md"}, {"title": "Kịch bản Kiểm thử (Test Spec)", "path": "features/1.1-smart-checkout/test-spec.md"}]}, {"title": "1.2-payment-orchestrator - Điều phối Cổng Thanh toán Đa kênh & Đối soát", "path": "features/1.2-payment-orchestrator/brd.md", "children": [{"title": "Nghiệp vụ (BRD)", "path": "features/1.2-payment-orchestrator/brd.md"}, {"title": "Kỹ thuật & API (FSD)", "path": "features/1.2-payment-orchestrator/fsd.md"}, {"title": "Kịch bản Kiểm thử (Test Spec)", "path": "features/1.2-payment-orchestrator/test-spec.md"}]}]}], "sections": [{"id": "sec-1", "title": "I. Tổng quan & Quyết định Kiến trúc", "items": [{"title": "Tổng quan Hệ thống Thương mại Điện tử", "path": "_index.md", "children": []}, {"title": "Quyết định Kiến trúc đã chốt (ADR)", "path": "decisions.md", "children": []}, {"title": "Câu hỏi mở & Điểm chờ chốt", "path": "open-questions.md", "children": []}]}, {"id": "sec-2", "title": "II. Phân hệ Đặt hàng & Thanh toán (Order & Checkout)", "items": [{"title": "1.1-smart-checkout - Đặt hàng nhanh & Giữ tồn kho thời gian thực", "path": "features/1.1-smart-checkout/brd.md", "children": [{"title": "Nghiệp vụ (BRD)", "path": "features/1.1-smart-checkout/brd.md"}, {"title": "Kỹ thuật & API (FSD)", "path": "features/1.1-smart-checkout/fsd.md"}, {"title": "Kịch bản Kiểm thử (Test Spec)", "path": "features/1.1-smart-checkout/test-spec.md"}]}, {"title": "1.2-payment-orchestrator - Điều phối Cổng Thanh toán Đa kênh & Đối soát", "path": "features/1.2-payment-orchestrator/brd.md", "children": [{"title": "Nghiệp vụ (BRD)", "path": "features/1.2-payment-orchestrator/brd.md"}, {"title": "Kỹ thuật & API (FSD)", "path": "features/1.2-payment-orchestrator/fsd.md"}, {"title": "Kịch bản Kiểm thử (Test Spec)", "path": "features/1.2-payment-orchestrator/test-spec.md"}]}]}], "total_files": 9}, "embeddedDocs": {"_index.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# Tổng quan Hệ thống Thương mại Điện tử (SRS Demo)\n\nChào mừng bạn đến với bản dùng thử công khai của **SRS WebView Studio** (`srs-webview-studio`). Bạn có thể bấm nút **Chỉnh sửa** ở góc trên bên phải bài viết để trải nghiệm sửa văn bản theo từng đoạn (`Per-Block WYSIWYG`) và kéo thả sơ đồ luồng trực quan (`Interactive Flow Canvas`).\n\n## 1. Sơ đồ kiến trúc tổng thể\n\n### Luồng tương tác giữa các phân hệ\n\n```mermaid\nflowchart TB\n  subgraph Actors[\"1. Người dùng & Đối tác\"]\n    R1[\"Khách mua hàng (Web / App)\"]\n    R2[\"Vận hành viên & Kế toán\"]\n  end\n\n  subgraph Core[\"2. Chuỗi xử lý đơn hàng trung tâm\"]\n    B1[\"1.1 Giỏ hàng & Giữ tồn kho tạm thời (TTL 15 phút)\"]\n    B2[\"1.2 Điều phối cổng thanh toán QR / Thẻ / Ví\"]\n    B3[\"1.3 Xác nhận đơn & Phát sự kiện xuất kho\"]\n  end\n\n  subgraph Outcome[\"3. Kết quả đầu ra\"]\n    O1[\"Đơn hàng đồng bộ tức thì\"]\n    O2[\"Sổ cái đối soát tự động\"]\n  end\n\n  R1 & R2 --> B1\n  B1 --> B2 --> B3 --> O1 & O2\n```\n\n## 2. Cấu trúc bộ tài liệu chuẩn cho mỗi tính năng\n\nMỗi tính năng trong kho tài liệu được tách thành 3 góc nhìn rõ ràng kèm bảng quyết định kiến trúc:\n\n| Loại tài liệu | Người đọc chính | Nội dung trọng tâm |\n|---|---|---|\n| **Nghiệp vụ (`brd.md`)** | Quản lý sản phẩm, Phân tích nghiệp vụ, Khách hàng | Bối cảnh bài toán, quy tắc nghiệp vụ, luồng người dùng và ví dụ số liệu thực tế |\n| **Kỹ thuật & API (`fsd.md`)** | Lập trình viên Backend, Frontend, Mobile | Mô hình cơ sở dữ liệu, hợp đồng giao tiếp API, sơ đồ tuần tự và cơ chế khóa đồng thời |\n| **Kịch bản Kiểm thử (`test-spec.md`)** | Kỹ sư Kiểm thử (QA) | Các ca kiểm thử chuẩn `Given / When / Then` phủ đủ luồng chính và trường hợp biên |\n| **Quyết định đã chốt (`decisions.md`)** | Toàn bộ đội dự án | Lưu vết quyết định, lý do lựa chọn ([D01](decisions.md), [D02](decisions.md), [D03](decisions.md)) và các phương án đã bác bỏ |\n\n## 3. Hướng dẫn thử nghiệm nhanh trên trang Demo này\n\n1. **Đóng/mở mục lục linh hoạt**: Bấm nút `Thu gọn / Mở hết` hoặc biểu tượng ẩn cột trên thanh **Danh mục tài liệu** (bên trái) và **Mục lục trang** (bên phải).\n2. **Nhảy thẳng tới dòng quyết định**: Bấm vào mã quyết định như [D01](decisions.md) hoặc [D02](decisions.md) để tự động mở bảng quyết định, cuộn tới đúng dòng đó và tô sáng.\n3. **Sửa trực quan từng đoạn và kéo thả sơ đồ**: Bấm nút **Chỉnh sửa**, sau đó bấm biểu tượng bút chì ở góc phải của bất kỳ đoạn văn, bảng biểu hoặc sơ đồ nào để chỉnh sửa trực tiếp.\n", "decisions.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# Quyết định Kiến trúc đã chốt (Architecture Decisions)\n\nBảng dưới đây lưu vết các quyết định nghiệp vụ và kỹ thuật cốt lõi của hệ thống mẫu. Bấm nút **Chỉnh sửa** để thử sửa trực tiếp từng ô trong bảng.\n\n## 1. Bảng quyết định kiến trúc\n\n| Mã | Quyết định đã chốt | Lý do lựa chọn | Phương án khác đã xét | Người chốt | Ngày chốt | Ghi chú áp dụng |\n|---|---|---|---|---|---|---|\n| D01 | **Giữ tồn kho tạm thời bằng khóa nguyên tử trên Redis kèm bản ghi đối chiếu trong PostgreSQL trong 15 phút khi khách bấm Thanh toán.** Nếu sau 15 phút chưa nhận được biên lai thanh toán thành công, tiến trình nền tự động giải phóng tồn kho về giỏ hàng chung. | **(1) Chống bán vượt tồn kho (Overselling)** trong các đợt mở bán Flash Sale có hàng nghìn lượt bấm cùng giây. **(2) Tự động thu hồi hàng giữ chỗ** khi khách thoát trình duyệt ở bước quét mã QR thanh toán mà không làm nghẽn khóa cơ sở dữ liệu chính. | (a) Chỉ trừ tồn kho sau khi thanh toán xong - dẫn tới 2 khách cùng thanh toán thành công cho 1 sản phẩm cuối cùng. (b) Khóa dòng trực tiếp bằng `SELECT FOR UPDATE` xuyên suốt 15 phút chờ khách quét QR - làm cạn kiệt kết nối cơ sở dữ liệu. | Hội đồng Kiến trúc | 2026-10-20 | Áp dụng tại [1.1 BRD](features/1.1-smart-checkout/brd.md) và [1.1 FSD](features/1.1-smart-checkout/fsd.md) |\n| D02 | **Mọi yêu cầu tạo đơn hàng và khởi tạo giao dịch thanh toán bắt buộc truyền khóa chống trùng lặp (`Idempotency-Key` theo chuẩn UUID v4) có hiệu lực 24 giờ.** Khi máy khách gửi lại cùng khóa do mạng chập chờn, máy chủ trả về đúng kết quả của lần xử lý đầu tiên. | Ngăn chặn triệt để lỗi tạo đúp 2 đơn hàng hoặc trừ tiền 2 lần khi người dùng bấm đúp nút *Đặt hàng* trên mạng di động 4G có độ trễ cao. | Chặn bấm nút ở riêng phía giao diện người dùng - không đủ an toàn khi ứng dụng tự động thử lại gói tin mạng hoặc khi có yêu cầu gọi thẳng vào API. | Tech Lead | 2026-10-22 | Áp dụng tại [1.1 FSD](features/1.1-smart-checkout/fsd.md) và [1.2 FSD](features/1.2-payment-orchestrator/fsd.md) |\n| D03 | **Điều phối cổng thanh toán theo mô hình ưu tiên VietQR động làm kênh mặc định, tự động chuyển dự phòng sang cổng Thẻ nội địa / Ví điện tử sau 10 giây nếu cổng chính bảo trì.** | Tối ưu phí giao dịch thấp nhất qua kênh chuyển khoản QR định danh từng đơn hàng và đảm bảo tỷ lệ thanh toán thành công đạt trên 99,5% ngay cả khi một ngân hàng đối tác gặp sự cố. | Gắn cứng một nhà cung cấp cổng thanh toán duy nhất - toàn bộ luồng thanh toán bị gián đoạn khi cổng đó bảo trì định kỳ. | Product Owner | 2026-10-25 | Áp dụng tại [1.2 BRD](features/1.2-payment-orchestrator/brd.md) |\n\n## 2. Ghi chú tra cứu\n\n- Khi một quyết định cũ được thay thế bởi quyết định mới, giữ nguyên dòng cũ và gắn nhãn tham chiếu sang mã quyết định mới để bảo toàn lịch sử đối chiếu.\n", "open-questions.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# Câu hỏi mở & Điểm chờ chốt (Open Questions)\n\nDanh sách các câu hỏi nghiệp vụ đang chờ xác nhận hoặc đã chuyển sang bảng quyết định.\n\n## 1. Danh sách câu hỏi\n\n| Mã | Câu hỏi cần chốt | Phân hệ liên quan | Người phụ trách | Trạng thái | Kết quả / Tham chiếu |\n|---|---|---|---|---|---|\n| Q01 | Thời gian giữ tồn kho cho đơn hàng Flash Sale có cần rút ngắn từ 15 phút xuống 5 phút hay không? | `1.1 Đặt hàng nhanh` | Product Owner | Đã chốt | Giữ thống nhất 15 phút ở giai đoạn 1 theo [D01](decisions.md), cho phép cấu hình động theo từng chiến dịch ở giai đoạn 2 |\n| Q02 | Khi khách hàng thanh toán thừa hoặc thiếu số tiền qua mã chuyển khoản thủ công thì xử lý tự động hay chuyển Kế toán duyệt tay? | `1.2 Điều phối Thanh toán` | Kế toán trưởng | Đang chờ chốt | Đề xuất: lệch dưới 1.000đ tự động ghi nhận hoàn tất; lệch từ 1.000đ trở lên đẩy vào hàng đợi Kế toán hậu kiểm |\n", "features/1.1-smart-checkout/brd.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# 1.1 Đặt hàng nhanh & Giữ tồn kho thời gian thực - BRD\n\n## 1. Bối cảnh & Mục tiêu\n\n### 1.1 Vấn đề nghiệp vụ\n\nTrong các khung giờ cao điểm hoặc chiến dịch khuyến mãi lớn, nhiều khách hàng cùng bấm đặt mua những sản phẩm cuối cùng trong kho. Nếu hệ thống không giữ chỗ tồn kho ngay tại thời điểm tạo đơn mà chờ tới khi cổng thanh toán báo về mới trừ kho, khách hàng đã chuyển tiền có nguy cơ bị hủy đơn do hết hàng.\n\n### 1.2 Giải pháp nghiệp vụ\n\nÁp dụng cơ chế **Giữ tồn kho tạm thời 15 phút** ngay khi khách hàng bấm nút *Đặt hàng* theo quyết định [D01](../../decisions.md) và chống tạo trùng đơn bằng khóa định danh lượt bấm theo [D02](../../decisions.md).\n\n## 2. Sơ đồ luồng nghiệp vụ\n\n### 2.1 Sơ đồ tổng quan luồng đặt hàng\n\n```mermaid\nflowchart TB\n  subgraph Actors[\"1. Vai trò tham gia\"]\n    U1[\"Khách mua hàng\"]\n    U2[\"Hệ thống Quản lý Kho\"]\n  end\n\n  subgraph Flow[\"2. Quy trình đặt hàng & giữ chỗ\"]\n    S1[\"2.1 Kiểm tra điều kiện khuyến mãi & địa chỉ giao\"]\n    S2[\"2.2 Khóa tạm tồn kho 15 phút cho từng mã hàng\"]\n    S3[\"2.3 Sinh mã QR thanh toán & theo dõi thời gian\"]\n    S4[\"2.4 Chốt đơn thành công hoặc thu hồi kho quá hạn\"]\n  end\n\n  subgraph Result[\"3. Kết quả nghiệp vụ\"]\n    R1[\"Đơn hàng xác nhận chính xác 100%\"]\n    R2[\"Không phát sinh bán vượt số lượng tồn\"]\n  end\n\n  U1 & U2 --> S1\n  S1 --> S2 --> S3 --> S4 --> R1 & R2\n```\n\n### 2.2 Quy tắc tính toán & giới hạn\n\n| Hạng mục | Quy tắc áp dụng | Ví dụ minh họa |\n|---|---|---|\n| **Thời gian giữ hàng tối đa** | 15 phút kể từ giây đơn hàng chuyển sang trạng thái *Chờ thanh toán* | Đơn tạo lúc `10:00:00` sẽ hết hạn giữ chỗ lúc `10:15:00` |\n| **Số lượng tối đa mỗi đơn** | Tối đa 20 dòng sản phẩm khác nhau trong một đơn hàng | Giỏ hàng có 5 mẫu áo (mỗi mẫu 2 chiếc) được tính là 5 dòng sản phẩm |\n| **Tự động hoàn tồn kho** | Ngay khi khách bấm *Hủy đơn* hoặc quá 15 phút chưa thanh toán, số lượng giữ tạm được cộng trả lại kho khả dụng | Kho còn 10 chiếc, khách giữ 2 chiếc (còn 8); sau 15 phút không thanh toán kho tự về lại 10 chiếc |\n", "features/1.1-smart-checkout/fsd.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# 1.1 Đặt hàng nhanh & Giữ tồn kho thời gian thực - FSD\n\n## 1. Kiến trúc kỹ thuật & Luồng xử lý\n\n### 1.1 Sơ đồ kiến trúc thành phần\n\n```mermaid\nflowchart LR\n  subgraph Client[\"Tầng Giao diện (Web / App)\"]\n    UI[\"Màn hình Thanh toán & Đếm ngược 15 phút\"]\n  end\n\n  subgraph API[\"Tầng Điều phối API\"]\n    EP[\"POST /api/v1/orders/checkout\"]\n    IDEM[\"Middleware kiểm tra Idempotency-Key\"]\n  end\n\n  subgraph Storage[\"Tầng Lưu trữ & Hàng đợi\"]\n    REDIS[\"Redis Atomic Stock Lock\"]\n    PG[\"PostgreSQL (orders, inventory_reservations)\"]\n  end\n\n  UI --> EP --> IDEM --> REDIS --> PG\n```\n\n### 1.2 Sơ đồ tuần tự xử lý đặt hàng\n\n```mermaid\nsequenceDiagram\n  autonumber\n  actor User as Khách hàng\n  participant API as Checkout API\n  participant Redis as Redis Stock Guard\n  participant DB as PostgreSQL\n\n  User->>API: POST /api/v1/orders/checkout (Idempotency-Key)\n  API->>Redis: DECRBY tồn kho khả dụng (TTL 900s)\n  Redis-->>API: Trả về số dư tồn kho >= 0\n  API->>DB: INSERT orders & inventory_reservations (PENDING)\n  DB-->>API: Trả về order_id & expires_at\n  API-->>User: HTTP 201 Created (kèm thông tin QR thanh toán)\n```\n\n## 2. Đặc tả Hợp đồng API\n\n| Phương thức & Đường dẫn | Đầu vào chính | Phản hồi thành công | Mã lỗi nghiệp vụ |\n|---|---|---|---|\n| `POST /api/v1/orders/checkout` | Header `Idempotency-Key`, mảng `items[{sku, qty}]`, `shipping_address_id` | `201 Created` kèm `order_id`, `status = \"PENDING_PAYMENT\"`, `expires_at` | `409 OUT_OF_STOCK`, `422 INVALID_VOUCHER` |\n| `POST /api/v1/orders/{id}/cancel` | `reason` | `200 OK` kèm trạng thái `CANCELLED` và hoàn lại tồn kho tức thì | `400 ORDER_ALREADY_PAID` |\n", "features/1.1-smart-checkout/test-spec.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# 1.1 Đặt hàng nhanh & Giữ tồn kho thời gian thực - Test Spec\n\n## 1. Danh mục Kịch bản Kiểm thử\n\n### 1.1 Kiểm thử luồng chính và cạnh tranh tồn kho\n\n| Mã ca kiểm thử | Mức độ | Điều kiện đầu (Given) | Thao tác (When) | Kết quả kỳ vọng (Then) |\n|---|---|---|---|---|\n| `TC-1.1-01` | 🟢 Luồng chuẩn | Sản phẩm `SKU-01` còn tồn khả dụng `10` chiếc, khách đã chọn địa chỉ giao hợp lệ | Khách bấm *Đặt hàng* với số lượng `2` chiếc | Tạo đơn `PENDING_PAYMENT` thành công, tồn khả dụng giảm ngay về `8` chiếc và đồng hồ đếm ngược 15 phút bắt đầu chạy |\n| `TC-1.1-02` | 🟡 Trường hợp biên | Khách gửi yêu cầu đặt hàng kèm `Idempotency-Key = K1`, sau đó bấm đúp gửi lại đúng `K1` lần thứ hai | Máy chủ nhận 2 yêu cầu trùng khóa `K1` trong vòng 2 giây | Chỉ tạo duy nhất 1 đơn hàng và chỉ trừ tạm `2` chiếc trong kho; lần gọi thứ hai trả về lại kết quả của đơn đầu tiên |\n| `TC-1.1-03` | 🔴 Luồng lỗi / Cạnh tranh | Sản phẩm `SKU-99` chỉ còn đúng `1` chiếc cuối cùng trong kho | Hai khách hàng `A` và `B` cùng bấm *Đặt hàng* `1` chiếc ở cùng một thời điểm | Đúng 1 người nhận mã `201 Created`, người còn lại nhận thông báo `409 OUT_OF_STOCK` (tồn kho không bao giờ âm) |\n| `TC-1.1-04` | 🟡 Hết hạn giữ chỗ | Đơn hàng đang ở trạng thái `PENDING_PAYMENT` giữ `2` chiếc `SKU-01` | Quá 15 phút khách chưa thanh toán | Hệ thống tự động chuyển đơn sang `EXPIRED` và cộng trả `2` chiếc về lại tồn kho khả dụng |\n", "features/1.2-payment-orchestrator/brd.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# 1.2 Điều phối Cổng Thanh toán Đa kênh & Đối soát - BRD\n\n## 1. Bối cảnh & Mục tiêu\n\nHệ thống cần kết nối nhiều kênh thanh toán (mã VietQR động, thẻ nội địa NAPAS, thẻ quốc tế và ví điện tử) với khả năng tự động chuyển kênh dự phòng khi một đối tác ngân hàng bảo trì theo quyết định [D03](../../decisions.md).\n\n## 2. Sơ đồ luồng điều phối thanh toán\n\n```mermaid\nflowchart TB\n  subgraph Channels[\"1. Kênh thanh toán người dùng chọn\"]\n    C1[\"Quét mã VietQR động\"]\n    C2[\"Thẻ ngân hàng / Ví điện tử\"]\n  end\n\n  subgraph Orchestrator[\"2. Bộ điều phối & Đối soát\"]\n    P1[\"2.1 Sinh mã giao dịch định danh duy nhất\"]\n    P2[\"2.2 Kiểm tra sức khỏe cổng chính & chuyển dự phòng\"]\n    P3[\"2.3 Xác thực chữ ký số Webhook & khớp số tiền\"]\n  end\n\n  subgraph Ledger[\"3. Kết quả hạch toán\"]\n    L1[\"Cập nhật đơn Đã thanh toán tức thì\"]\n    L2[\"Ghi bút toán sổ cái đối soát tự động\"]\n  end\n\n  C1 & C2 --> P1\n  P1 --> P2 --> P3 --> L1 & L2\n```\n", "features/1.2-payment-orchestrator/fsd.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# 1.2 Điều phối Cổng Thanh toán Đa kênh & Đối soát - FSD\n\n## 1. Sơ đồ kiến trúc xử lý Webhook Thanh toán\n\n```mermaid\nflowchart LR\n  GW[\"Cổng Thanh toán Đối tác\"] --> WH[\"POST /api/v1/payments/webhook\"]\n  WH --> SIG[\"Kiểm tra chữ ký HMAC-SHA256\"]\n  SIG --> TX[\"Khóa giao dịch & Cập nhật trạng thái PAID\"]\n  TX --> EVT[\"Phát sự kiện xuất kho & gửi thông báo\"]\n```\n\n## 2. Quy tắc bảo mật & chống ghi đè\n\n1. **Xác thực chữ ký số (`HMAC-SHA256`)**: Mọi thông báo kết quả thanh toán từ đối tác bắt buộc phải khớp chữ ký mật mã và nằm trong cửa sổ thời gian 5 phút.\n2. **Xử lý bất biến một chiều**: Khi đơn hàng đã chuyển sang trạng thái `PAID`, các thông báo trùng lặp đến sau chỉ trả về `200 OK` mà không sinh thêm bút toán mới.\n", "features/1.2-payment-orchestrator/test-spec.md": "> **Last Updated At:** 2026-10-30 **Updated By:** srs-webview-studio\n\n# 1.2 Điều phối Cổng Thanh toán Đa kênh & Đối soát - Test Spec\n\n## 1. Kịch bản kiểm thử thanh toán & đối soát\n\n| Mã ca kiểm thử | Mức độ | Điều kiện đầu (Given) | Thao tác (When) | Kết quả kỳ vọng (Then) |\n|---|---|---|---|---|\n| `TC-1.2-01` | 🟢 Luồng chuẩn | Đơn hàng `ORD-101` cần thanh toán `500.000đ` đang ở trạng thái `PENDING_PAYMENT` | Webhook đối tác gửi biên lai thành công đúng `500.000đ` kèm chữ ký hợp lệ | Đơn hàng chuyển sang `PAID` trong dưới 1 giây, khóa giữ tồn kho chuyển thành xuất kho chính thức |\n| `TC-1.2-02` | 🔴 Bảo mật | Đơn hàng `ORD-101` đang chờ thanh toán | Kẻ tấn công gửi gói tin giả mạo vào `/api/v1/payments/webhook` với chữ ký sai | Hệ thống từ chối với mã `401 Invalid Signature` và ghi nhật ký cảnh báo bảo mật |\n"}};
     const STUDIO_CONFIG = Object.assign({
       title: "SRS WebView Studio",
       breadcrumbRoot: "Tài liệu SRS",
@@ -1498,6 +1636,8 @@
           currentRawMarkdown = data.content || "";
         }
         await renderMarkdownIntoArticle(currentRawMarkdown);
+        currentRawMarkdown = serializeArticleToMarkdown();
+        syncDocHistoryState(currentDocPath, currentRawMarkdown);
         renderPrevNextCards();
         if (effectiveTarget) {
           const normTarget = effectiveTarget.trim().toUpperCase();
@@ -2157,8 +2297,19 @@
       const tbl = block.querySelector("table");
       if (tbl) tbl.removeAttribute("contenteditable");
 
+      const tag = (block.tagName || "").toLowerCase();
+      const snippet = (block.textContent || "").replace(/\s+/g, " ").trim().slice(0, 48);
+      let summary = `Sửa đoạn văn: ${snippet}`;
+      if (block.classList.contains("gb-table-block") || tag === "table") {
+        summary = "Chỉnh sửa bảng dữ liệu";
+      } else if (/^h[1-6]$/.test(tag)) {
+        summary = `Sửa tiêu đề: ${snippet}`;
+      } else if (tag === "ul" || tag === "ol") {
+        summary = `Sửa danh sách: ${snippet}`;
+      }
+
       decorateEditableBlocks();
-      await saveEditedMarkdown(true);
+      await saveEditedMarkdown(true, summary);
     }
 
     function cancelBlockEdit(idx) {
@@ -3131,7 +3282,7 @@
       } catch (_) {}
 
       decorateEditableBlocks();
-      await saveEditedMarkdown(true);
+      await saveEditedMarkdown(true, "Cập nhật sơ đồ luồng (Mermaid)");
     }
 
     function cancelMermaidBlock(idx) {
@@ -3270,15 +3421,756 @@
       return out.filter(Boolean).join("\n\n") + "\n";
     }
 
-    async function saveEditedMarkdown(keepEditMode = false) {
+    // =========================================================================
+    // GOOGLE DOCS-STYLE VERSION HISTORY & AUDIT LOG ENGINE
+    // =========================================================================
+    const LOCAL_HISTORY_KEY = "srs_studio_doc_history_v1";
+    const LOCAL_AUDIT_KEY = "srs_studio_audit_log_v1";
+    const docVersionsCache = {};
+    let globalAuditLogCache = [];
+    let currentVhTab = "diff";
+    let selectedVersionId = "v1";
+
+    function loadLocalHistoryStore() {
+      try {
+        const raw = localStorage.getItem(LOCAL_HISTORY_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function saveLocalHistoryStore(store) {
+      try {
+        localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(store));
+      } catch (_) {}
+    }
+
+    function loadLocalAuditStore() {
+      try {
+        const raw = localStorage.getItem(LOCAL_AUDIT_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function saveLocalAuditStore(list) {
+      try {
+        localStorage.setItem(LOCAL_AUDIT_KEY, JSON.stringify((list || []).slice(0, 150)));
+      } catch (_) {}
+    }
+
+    function computeLineDiffStats(prevText, nextText) {
+      const prevLines = String(prevText || "").split("\n");
+      const nextLines = String(nextText || "").split("\n");
+      const prevSet = new Set(prevLines);
+      const nextSet = new Set(nextLines);
+      let added = 0;
+      let removed = 0;
+      for (const l of nextLines) {
+        if (!prevSet.has(l)) added++;
+      }
+      for (const l of prevLines) {
+        if (!nextSet.has(l)) removed++;
+      }
+      return { added, removed };
+    }
+
+    function autoDetectDiffSummary(prevMd, nextMd) {
+      const pLines = String(prevMd || "").split("\n");
+      const nLines = String(nextMd || "").split("\n");
+      for (let i = 0; i < Math.max(pLines.length, nLines.length); i++) {
+        if (pLines[i] !== nLines[i]) {
+          const sample = (nLines[i] || pLines[i] || "").replace(/^[#>*\-\s|]+/, "").trim().slice(0, 48);
+          if (sample) return `Chỉnh sửa: ${sample}`;
+        }
+      }
+      return "Cập nhật nội dung tài liệu";
+    }
+
+    function updateVersionBadgeUI(docPath) {
+      const badge = document.getElementById("version-count-badge");
+      if (!badge) return;
+      const list = docVersionsCache[docPath] || [];
+      const latest = list.length ? list[list.length - 1] : null;
+      badge.textContent = latest ? latest.id : "v1";
+    }
+
+    async function syncDocHistoryState(docPath, initialContent) {
+      const store = loadLocalHistoryStore();
+      const localList = Array.isArray(store[docPath]) ? store[docPath] : [];
+      if (!localList.length && initialContent) {
+        localList.push({
+          id: "v1",
+          version: 1,
+          doc_path: docPath,
+          author: "system@glinteco.com",
+          author_name: "Bản gốc khởi tạo",
+          timestamp: new Date().toISOString(),
+          action: "init",
+          summary: "Bản gốc khởi tạo",
+          added_lines: String(initialContent).split("\n").length,
+          removed_lines: 0,
+          content: initialContent
+        });
+        store[docPath] = localList;
+        saveLocalHistoryStore(store);
+      }
+      docVersionsCache[docPath] = localList;
+      globalAuditLogCache = loadLocalAuditStore();
+      updateVersionBadgeUI(docPath);
+
+      if (!STUDIO_CONFIG.embeddedDocs) {
+        try {
+          const resp = await fetch(`${WORKER_API_BASE}/api/srs-book/history?path=${encodeURIComponent(docPath)}`, {
+            credentials: "include"
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            if (data.ok && Array.isArray(data.versions) && data.versions.length) {
+              docVersionsCache[docPath] = data.versions;
+              store[docPath] = data.versions;
+              saveLocalHistoryStore(store);
+            }
+            if (data.ok && Array.isArray(data.audit_log)) {
+              globalAuditLogCache = data.audit_log;
+              saveLocalAuditStore(data.audit_log);
+            }
+            updateVersionBadgeUI(docPath);
+          }
+        } catch (_) {}
+      }
+    }
+
+    function recordLocalDocVersion(docPath, prevMd, nextMd, summary, action = "edit", extra = {}) {
+      const store = loadLocalHistoryStore();
+      let list = Array.isArray(docVersionsCache[docPath]) && docVersionsCache[docPath].length
+        ? docVersionsCache[docPath]
+        : (Array.isArray(store[docPath]) ? store[docPath] : []);
+
+      const nowIso = new Date().toISOString();
+      if (!list.length && prevMd) {
+        list.push({
+          id: "v1",
+          version: 1,
+          doc_path: docPath,
+          author: "system@glinteco.com",
+          author_name: "Bản gốc khởi tạo",
+          timestamp: nowIso,
+          action: "init",
+          summary: "Bản gốc trước khi chỉnh sửa",
+          added_lines: String(prevMd).split("\n").length,
+          removed_lines: 0,
+          content: prevMd
+        });
+      }
+
+      const { added, removed } = computeLineDiffStats(prevMd, nextMd);
+      const verNum = list.length + 1;
+      const authorEmail = currentUserEmail || STUDIO_CONFIG.localUserLabel || "hung.phamduc@glinteco.com";
+      const entry = Object.assign({
+        id: `v${verNum}`,
+        version: verNum,
+        doc_path: docPath,
+        author: authorEmail,
+        author_name: authorEmail,
+        timestamp: nowIso,
+        action,
+        summary: summary || autoDetectDiffSummary(prevMd, nextMd),
+        added_lines: added,
+        removed_lines: removed,
+        content: nextMd
+      }, extra);
+
+      list.push(entry);
+      docVersionsCache[docPath] = list;
+      store[docPath] = list;
+      saveLocalHistoryStore(store);
+
+      const auditList = loadLocalAuditStore();
+      auditList.unshift({
+        id: `audit-${Date.now()}`,
+        version_id: entry.id,
+        version: entry.version,
+        doc_path: docPath,
+        author: entry.author,
+        author_name: entry.author_name,
+        timestamp: nowIso,
+        action: entry.action,
+        reverted_from: entry.reverted_from || null,
+        summary: entry.summary,
+        added_lines: added,
+        removed_lines: removed
+      });
+      globalAuditLogCache = auditList;
+      saveLocalAuditStore(auditList);
+      updateVersionBadgeUI(docPath);
+      return entry;
+    }
+
+    function escapeHtmlText(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function computeWordDiffHtml(oldLine, newLine) {
+      const oldTokens = String(oldLine || "").split(/(\s+)/);
+      const newTokens = String(newLine || "").split(/(\s+)/);
+      const m = oldTokens.length;
+      const n = newTokens.length;
+      if (m * n > 25000) {
+        return `<del class="gb-diff-del">${escapeHtmlText(oldLine)}</del> <ins class="gb-diff-ins">${escapeHtmlText(newLine)}</ins>`;
+      }
+      const dp = Array.from({ length: m + 1 }, () => new Uint16Array(n + 1));
+      for (let i = m - 1; i >= 0; i--) {
+        for (let j = n - 1; j >= 0; j--) {
+          if (oldTokens[i] === newTokens[j]) {
+            dp[i][j] = dp[i + 1][j + 1] + 1;
+          } else {
+            dp[i][j] = Math.max(dp[i + 1][j], dp[i][j + 1]);
+          }
+        }
+      }
+      let i = 0;
+      let j = 0;
+      const parts = [];
+      while (i < m && j < n) {
+        if (oldTokens[i] === newTokens[j]) {
+          parts.push({ type: "eq", text: oldTokens[i] });
+          i++;
+          j++;
+        } else if (dp[i + 1][j] >= dp[i][j + 1]) {
+          parts.push({ type: "del", text: oldTokens[i] });
+          i++;
+        } else {
+          parts.push({ type: "ins", text: newTokens[j] });
+          j++;
+        }
+      }
+      while (i < m) parts.push({ type: "del", text: oldTokens[i++] });
+      while (j < n) parts.push({ type: "ins", text: newTokens[j++] });
+
+      const merged = [];
+      for (const p of parts) {
+        if (merged.length && merged[merged.length - 1].type === p.type) {
+          merged[merged.length - 1].text += p.text;
+        } else {
+          merged.push({ ...p });
+        }
+      }
+      return merged.map((seg) => {
+        if (seg.type === "ins") return `<ins class="gb-diff-ins">${escapeHtmlText(seg.text)}</ins>`;
+        if (seg.type === "del") return `<del class="gb-diff-del">${escapeHtmlText(seg.text)}</del>`;
+        return escapeHtmlText(seg.text);
+      }).join("");
+    }
+
+    function computeLineDiffOps(prevText, nextText) {
+      const a = String(prevText || "").split("\n");
+      const b = String(nextText || "").split("\n");
+      const m = a.length;
+      const n = b.length;
+
+      // Trim common prefix and suffix lines first so even 5,000-line files diff in < 1ms
+      let prefixLen = 0;
+      while (prefixLen < m && prefixLen < n && a[prefixLen] === b[prefixLen]) {
+        prefixLen++;
+      }
+      let suffixLen = 0;
+      while (
+        suffixLen < (m - prefixLen) &&
+        suffixLen < (n - prefixLen) &&
+        a[m - 1 - suffixLen] === b[n - 1 - suffixLen]
+      ) {
+        suffixLen++;
+      }
+
+      const rawOps = [];
+      for (let p = 0; p < prefixLen; p++) {
+        rawOps.push({ type: "eq", text: a[p], oldNo: p + 1, newNo: p + 1 });
+      }
+
+      const midA = a.slice(prefixLen, m - suffixLen);
+      const midB = b.slice(prefixLen, n - suffixLen);
+      const mm = midA.length;
+      const nn = midB.length;
+
+      if (mm * nn > 1500000) {
+        midA.forEach((line, idx) => rawOps.push({ type: "del", text: line, oldNo: prefixLen + idx + 1, newNo: null }));
+        midB.forEach((line, idx) => rawOps.push({ type: "ins", text: line, oldNo: null, newNo: prefixLen + idx + 1 }));
+      } else {
+        const dp = Array.from({ length: mm + 1 }, () => new Uint16Array(nn + 1));
+        for (let i = mm - 1; i >= 0; i--) {
+          for (let j = nn - 1; j >= 0; j--) {
+            if (midA[i] === midB[j]) {
+              dp[i][j] = dp[i + 1][j + 1] + 1;
+            } else {
+              dp[i][j] = Math.max(dp[i + 1][j], dp[i][j + 1]);
+            }
+          }
+        }
+        let i = 0;
+        let j = 0;
+        while (i < mm && j < nn) {
+          if (midA[i] === midB[j]) {
+            rawOps.push({ type: "eq", text: midA[i], oldNo: prefixLen + i + 1, newNo: prefixLen + j + 1 });
+            i++;
+            j++;
+          } else if (dp[i + 1][j] >= dp[i][j + 1]) {
+            rawOps.push({ type: "del", text: midA[i], oldNo: prefixLen + i + 1, newNo: null });
+            i++;
+          } else {
+            rawOps.push({ type: "ins", text: midB[j], oldNo: null, newNo: prefixLen + j + 1 });
+            j++;
+          }
+        }
+        while (i < mm) {
+          rawOps.push({ type: "del", text: midA[i], oldNo: prefixLen + i + 1, newNo: null });
+          i++;
+        }
+        while (j < nn) {
+          rawOps.push({ type: "ins", text: midB[j], oldNo: null, newNo: prefixLen + j + 1 });
+          j++;
+        }
+      }
+
+      for (let s = 0; s < suffixLen; s++) {
+        const oi = m - suffixLen + s;
+        const ni = n - suffixLen + s;
+        rawOps.push({ type: "eq", text: a[oi], oldNo: oi + 1, newNo: ni + 1 });
+      }
+
+      // Pair adjacent del + ins into inline word-diff rows (Google Docs style)
+      const paired = [];
+      for (let k = 0; k < rawOps.length; k++) {
+        const cur = rawOps[k];
+        const nxt = rawOps[k + 1];
+        if (cur.type === "del" && nxt && nxt.type === "ins" && cur.text.trim() && nxt.text.trim()) {
+          paired.push({
+            type: "mod",
+            oldLine: cur.text,
+            newLine: nxt.text,
+            oldNo: cur.oldNo,
+            newNo: nxt.newNo
+          });
+          k++;
+        } else {
+          paired.push(cur);
+        }
+      }
+      return paired;
+    }
+
+    function formatVhTimestamp(isoStr) {
+      if (!isoStr) return "";
+      try {
+        const d = new Date(isoStr);
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+      } catch (_) {
+        return isoStr;
+      }
+    }
+
+    async function openVersionHistoryModal(defaultTab = "diff") {
+      currentVhTab = defaultTab || "diff";
+      await syncDocHistoryState(currentDocPath, currentRawMarkdown);
+      const list = docVersionsCache[currentDocPath] || [];
+      if (list.length) {
+        selectedVersionId = list[list.length - 1].id;
+      }
+      const modal = document.getElementById("version-history-modal");
+      if (modal) {
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+      }
+      renderVersionHistoryModal();
+    }
+
+    function closeVersionHistoryModal() {
+      const modal = document.getElementById("version-history-modal");
+      if (modal) {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+      }
+    }
+
+    function switchVersionHistoryTab(tab) {
+      currentVhTab = tab;
+      ["diff", "preview", "audit"].forEach((t) => {
+        const btn = document.getElementById(`vh-tab-${t}`);
+        if (!btn) return;
+        if (t === tab) {
+          btn.className = "px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold text-xs";
+        } else {
+          btn.className = "px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white font-medium text-xs";
+        }
+      });
+      renderVersionHistoryModal();
+    }
+
+    function selectVersionHistoryItem(verId) {
+      selectedVersionId = verId;
+      renderVersionHistoryModal();
+    }
+
+    function renderVersionHistoryModal() {
+      const pathLbl = document.getElementById("vh-doc-path-label");
+      if (pathLbl) pathLbl.textContent = currentDocPath;
+
+      const list = docVersionsCache[currentDocPath] || [];
+      const countEl = document.getElementById("vh-timeline-count");
+      if (countEl) countEl.textContent = `${list.length} phiên bản`;
+
+      const selIdx = Math.max(0, list.findIndex((v) => v.id === selectedVersionId));
+      const selVer = list[selIdx] || list[list.length - 1];
+      const prevVer = selIdx > 0 ? list[selIdx - 1] : null;
+      const isLatest = selIdx === list.length - 1;
+
+      const revertBtn = document.getElementById("btn-revert-version");
+      const revertLbl = document.getElementById("btn-revert-version-label");
+      if (revertBtn) {
+        const canRevert = Boolean(selVer && (!isLatest || selVer.content !== currentRawMarkdown));
+        revertBtn.disabled = !canRevert;
+        if (revertLbl) {
+          revertLbl.textContent = selVer ? `Khôi phục về ${selVer.id}` : "Khôi phục phiên bản này";
+        }
+      }
+
+      // Render Timeline Right Sidebar
+      const timelineEl = document.getElementById("vh-timeline-list");
+      if (timelineEl) {
+        timelineEl.innerHTML = [...list].reverse().map((v, revIdx) => {
+          const active = selVer && v.id === selVer.id;
+          const isCurrent = revIdx === 0;
+          const badgeColor = v.action === "revert"
+            ? "bg-amber-500/15 text-amber-700 dark:text-amber-400"
+            : v.action === "init"
+              ? "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+              : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400";
+          const actionText = v.action === "revert"
+            ? "Khôi phục"
+            : v.action === "init"
+              ? "Bản gốc"
+              : (isCurrent ? "Hiện tại" : "Chỉnh sửa");
+          return `
+            <div
+              onclick="selectVersionHistoryItem('${v.id}')"
+              data-version-card="${v.id}"
+              class="p-3 rounded-xl border transition cursor-pointer ${
+                active
+                  ? "border-emerald-500 bg-emerald-500/5 shadow-sm"
+                  : "gb-border bg-white dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-slate-700"
+              }"
+            >
+              <div class="flex items-center justify-between gap-2 mb-1.5">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-2 py-0.5 rounded-md font-mono font-bold text-[11px] ${badgeColor}">${v.id}</span>
+                  <span class="text-[11px] font-semibold text-slate-700 dark:text-slate-200">${actionText}</span>
+                </div>
+                <span class="text-[10.5px] font-mono text-slate-400">
+                  <span class="text-emerald-600 dark:text-emerald-400">+${v.added_lines || 0}</span> /
+                  <span class="text-rose-500">-${v.removed_lines || 0}</span>
+                </span>
+              </div>
+              <div class="text-xs font-medium text-slate-800 dark:text-slate-100 line-clamp-2 mb-1.5">
+                ${escapeHtmlText(v.summary || "Cập nhật tài liệu")}
+              </div>
+              <div class="flex items-center justify-between gap-2 text-[11px] text-slate-500">
+                <span class="inline-flex items-center gap-1 truncate">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                  <span class="truncate">${escapeHtmlText(v.author || "system")}</span>
+                </span>
+                <span class="shrink-0 font-mono text-[10px] text-slate-400">${formatVhTimestamp(v.timestamp)}</span>
+              </div>
+              ${
+                !isCurrent
+                  ? `<div class="mt-2 pt-2 border-t gb-border flex justify-end">
+                       <button
+                         type="button"
+                         onclick="event.stopPropagation(); revertToVersion('${v.id}')"
+                         class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
+                       >
+                         ↺ Khôi phục bản ${v.id}
+                       </button>
+                     </div>`
+                  : ""
+              }
+            </div>
+          `;
+        }).join("");
+      }
+
+      // Render Selected Version Metadata Header
+      const metaEl = document.getElementById("vh-selected-meta");
+      if (metaEl && selVer) {
+        metaEl.innerHTML = `
+          <div class="flex flex-wrap items-center gap-2.5">
+            <span class="px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-mono font-bold text-xs">${selVer.id}</span>
+            <span class="font-semibold text-slate-800 dark:text-slate-100">${escapeHtmlText(selVer.summary || "")}</span>
+            <span class="text-slate-400">•</span>
+            <span class="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <strong>Người sửa:</strong> ${escapeHtmlText(selVer.author || "")}
+            </span>
+            <span class="text-slate-400">•</span>
+            <span class="text-slate-500 font-mono text-[11px]">${formatVhTimestamp(selVer.timestamp)}</span>
+          </div>
+          <div class="flex items-center gap-2 text-[11px] font-mono">
+            <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold">+${selVer.added_lines || 0} dòng thêm</span>
+            <span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 font-semibold">-${selVer.removed_lines || 0} dòng xóa</span>
+          </div>
+        `;
+      }
+
+      const bodyEl = document.getElementById("vh-main-body");
+      if (!bodyEl || !selVer) return;
+
+      if (currentVhTab === "audit") {
+        const auditRows = (globalAuditLogCache && globalAuditLogCache.length)
+          ? globalAuditLogCache
+          : [...list].reverse();
+        bodyEl.innerHTML = `
+          <div class="rounded-xl border gb-border overflow-hidden">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="gb-surface border-b gb-border text-slate-500 font-semibold">
+                  <th class="py-2.5 px-3">Thời gian</th>
+                  <th class="py-2.5 px-3">Người thực hiện</th>
+                  <th class="py-2.5 px-3">Tài liệu</th>
+                  <th class="py-2.5 px-3">Phiên bản</th>
+                  <th class="py-2.5 px-3">Chi tiết thay đổi</th>
+                  <th class="py-2.5 px-3 text-right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y gb-border">
+                ${auditRows.map((row) => `
+                  <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                    <td class="py-2.5 px-3 font-mono text-[11px] text-slate-500 whitespace-nowrap">${formatVhTimestamp(row.timestamp)}</td>
+                    <td class="py-2.5 px-3 font-medium text-slate-800 dark:text-slate-200 whitespace-nowrap">
+                      <span class="inline-flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        ${escapeHtmlText(row.author || "")}
+                      </span>
+                    </td>
+                    <td class="py-2.5 px-3 font-mono text-[11px] text-slate-600 dark:text-slate-400">${escapeHtmlText(row.doc_path || currentDocPath)}</td>
+                    <td class="py-2.5 px-3">
+                      <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-mono font-semibold text-[11px]">${escapeHtmlText(row.version_id || row.id || "v1")}</span>
+                    </td>
+                    <td class="py-2.5 px-3 text-slate-700 dark:text-slate-300">
+                      ${escapeHtmlText(row.summary || "")}
+                      <span class="ml-1.5 font-mono text-[10.5px] text-slate-400">(+${row.added_lines || 0} / -${row.removed_lines || 0})</span>
+                    </td>
+                    <td class="py-2.5 px-3 text-right whitespace-nowrap">
+                      ${
+                        (row.doc_path || currentDocPath) === currentDocPath
+                          ? `<button type="button" onclick="selectVersionHistoryItem('${row.version_id || row.id}'); switchVersionHistoryTab('diff')" class="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline">Xem so sánh</button>`
+                          : `<button type="button" onclick="closeVersionHistoryModal(); openDoc('${row.doc_path}')" class="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline">Mở trang</button>`
+                      }
+                    </td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+        return;
+      }
+
+      if (currentVhTab === "preview") {
+        bodyEl.innerHTML = `
+          <div class="rounded-xl border gb-border p-4 bg-slate-50/40 dark:bg-slate-900/40">
+            <div class="text-[11px] font-semibold text-slate-400 mb-2">NỘI DUNG MARKDOWN CỦA PHIÊN BẢN ${selVer.id.toUpperCase()}</div>
+            <pre class="text-xs font-mono whitespace-pre-wrap break-words text-slate-800 dark:text-slate-200 leading-relaxed">${escapeHtmlText(selVer.content || "")}</pre>
+          </div>
+        `;
+        return;
+      }
+
+      // Default: Google Docs-style Visual Diff ("diff" tab)
+      const baseText = prevVer ? prevVer.content : selVer.content;
+      const ops = computeLineDiffOps(baseText, selVer.content);
+      const changedOps = ops.filter((op) => op.type !== "eq");
+
+      const summaryHighlightHtml = changedOps.length
+        ? `
+          <div class="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+                Điểm thay đổi chính so với ${prevVer ? `phiên bản ${prevVer.id}` : "bản gốc"} (${changedOps.length} vị trí):
+              </span>
+              <span class="text-[11px] text-slate-500">
+                <ins class="gb-diff-ins mr-1.5">Chữ thêm mới</ins>
+                <del class="gb-diff-del">Chữ đã xóa</del>
+              </span>
+            </div>
+            <div class="space-y-1.5 text-xs font-mono">
+              ${changedOps.slice(0, 12).map((op) => {
+                if (op.type === "mod") {
+                  return `<div class="p-2 rounded-lg bg-white dark:bg-slate-900 border gb-border leading-relaxed">
+                    <span class="text-slate-400 mr-2">Dòng ${op.newNo}:</span>
+                    ${computeWordDiffHtml(op.oldLine, op.newLine)}
+                  </div>`;
+                }
+                if (op.type === "ins") {
+                  return `<div class="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 leading-relaxed">
+                    <span class="text-emerald-600 font-bold mr-2">+ Dòng ${op.newNo}:</span>
+                    <ins class="gb-diff-ins">${escapeHtmlText(op.text)}</ins>
+                  </div>`;
+                }
+                return `<div class="p-2 rounded-lg bg-rose-500/10 border border-rose-500/20 leading-relaxed">
+                  <span class="text-rose-600 font-bold mr-2">− Dòng ${op.oldNo}:</span>
+                  <del class="gb-diff-del">${escapeHtmlText(op.text)}</del>
+                </div>`;
+              }).join("")}
+            </div>
+          </div>
+        `
+        : `
+          <div class="rounded-xl border gb-border p-3.5 bg-slate-50/60 dark:bg-slate-900/40 text-xs text-slate-500 flex items-center justify-between">
+            <span>${prevVer ? `Không có khác biệt nội dung so với ${prevVer.id}.` : "Đây là phiên bản gốc khởi tạo (v1) của tài liệu."}</span>
+            <span class="text-[11px]">Chọn một phiên bản khác ở cột bên phải để đối chiếu hoặc khôi phục.</span>
+          </div>
+        `;
+
+      const fullDiffLinesHtml = ops.map((op) => {
+        if (op.type === "mod") {
+          return `
+            <div class="flex items-start gap-3 px-3 py-1.5 bg-amber-500/10 border-l-2 border-amber-500 font-mono text-xs">
+              <span class="w-10 shrink-0 text-right text-[10.5px] text-amber-600 select-none">${op.newNo || ""}</span>
+              <span class="w-4 shrink-0 font-bold text-amber-600 select-none">±</span>
+              <div class="flex-1 break-words whitespace-pre-wrap">${computeWordDiffHtml(op.oldLine, op.newLine)}</div>
+            </div>
+          `;
+        }
+        if (op.type === "ins") {
+          return `
+            <div class="flex items-start gap-3 px-3 py-1 bg-emerald-500/10 border-l-2 border-emerald-500 font-mono text-xs">
+              <span class="w-10 shrink-0 text-right text-[10.5px] text-emerald-600 select-none">${op.newNo || ""}</span>
+              <span class="w-4 shrink-0 font-bold text-emerald-600 select-none">+</span>
+              <div class="flex-1 break-words whitespace-pre-wrap text-emerald-900 dark:text-emerald-200">${escapeHtmlText(op.text)}</div>
+            </div>
+          `;
+        }
+        if (op.type === "del") {
+          return `
+            <div class="flex items-start gap-3 px-3 py-1 bg-rose-500/10 border-l-2 border-rose-500 font-mono text-xs">
+              <span class="w-10 shrink-0 text-right text-[10.5px] text-rose-500 select-none">${op.oldNo || ""}</span>
+              <span class="w-4 shrink-0 font-bold text-rose-500 select-none">−</span>
+              <div class="flex-1 break-words whitespace-pre-wrap text-rose-800 dark:text-rose-300 line-through">${escapeHtmlText(op.text)}</div>
+            </div>
+          `;
+        }
+        return `
+          <div class="flex items-start gap-3 px-3 py-0.5 font-mono text-xs text-slate-600 dark:text-slate-400">
+            <span class="w-10 shrink-0 text-right text-[10.5px] text-slate-400 select-none">${op.newNo || ""}</span>
+            <span class="w-4 shrink-0 select-none"> </span>
+            <div class="flex-1 break-words whitespace-pre-wrap">${escapeHtmlText(op.text)}</div>
+          </div>
+        `;
+      }).join("");
+
+      bodyEl.innerHTML = `
+        ${summaryHighlightHtml}
+        <div class="rounded-xl border gb-border overflow-hidden bg-white dark:bg-slate-950">
+          <div class="px-3.5 py-2 border-b gb-border gb-surface text-[11px] font-semibold text-slate-500 flex items-center justify-between">
+            <span>Toàn bộ tài liệu kèm đánh dấu dòng thay đổi</span>
+            <span class="font-mono text-[10.5px]">${prevVer ? `${prevVer.id} → ${selVer.id}` : selVer.id}</span>
+          </div>
+          <div class="divide-y divide-slate-100 dark:divide-slate-900 py-1">
+            ${fullDiffLinesHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    async function revertSelectedVersion() {
+      if (!selectedVersionId) return;
+      await revertToVersion(selectedVersionId);
+    }
+
+    async function revertToVersion(targetVerId) {
+      const list = docVersionsCache[currentDocPath] || [];
+      const targetVer = list.find((v) => v.id === targetVerId);
+      if (!targetVer) return;
+
+      const revertBtn = document.getElementById("btn-revert-version");
+      const revertLbl = document.getElementById("btn-revert-version-label");
+      if (revertBtn) revertBtn.disabled = true;
+      if (revertLbl) revertLbl.textContent = "Đang khôi phục...";
+
+      const prevMd = currentRawMarkdown;
+      const restoredMd = String(targetVer.content || "");
+      const summary = `Khôi phục về phiên bản ${targetVer.id} (${targetVer.author || "bản gốc"})`;
+
+      try {
+        let serverHandled = false;
+        if (!STUDIO_CONFIG.embeddedDocs) {
+          try {
+            const resp = await fetch(`${WORKER_API_BASE}/api/srs-book/revert`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({ path: currentDocPath, version_id: targetVer.id })
+            });
+            if (resp.ok) {
+              const data = await resp.json();
+              if (data.ok && Array.isArray(data.versions)) {
+                docVersionsCache[currentDocPath] = data.versions;
+                const store = loadLocalHistoryStore();
+                store[currentDocPath] = data.versions;
+                saveLocalHistoryStore(store);
+                if (Array.isArray(data.audit_log)) {
+                  globalAuditLogCache = data.audit_log;
+                  saveLocalAuditStore(data.audit_log);
+                }
+                serverHandled = true;
+              }
+            }
+          } catch (_) {}
+        }
+
+        if (!serverHandled) {
+          recordLocalDocVersion(currentDocPath, prevMd, restoredMd, summary, "revert", {
+            reverted_from: targetVer.id
+          });
+        }
+
+        if (STUDIO_CONFIG.embeddedDocs) {
+          STUDIO_CONFIG.embeddedDocs[currentDocPath] = restoredMd;
+        }
+        currentRawMarkdown = restoredMd;
+        updateVersionBadgeUI(currentDocPath);
+        await renderMarkdownIntoArticle(currentRawMarkdown);
+        if (isBlockEditMode) {
+          decorateEditableBlocks();
+        }
+
+        const updatedList = docVersionsCache[currentDocPath] || [];
+        if (updatedList.length) {
+          selectedVersionId = updatedList[updatedList.length - 1].id;
+        }
+        renderVersionHistoryModal();
+      } finally {
+        if (revertBtn) revertBtn.disabled = false;
+      }
+    }
+
+    async function saveEditedMarkdown(keepEditMode = false, customSummary = "") {
+      const prevMd = currentRawMarkdown;
       const newMd = serializeArticleToMarkdown();
+      const summary = customSummary || autoDetectDiffSummary(prevMd, newMd);
       const btn = document.getElementById("btn-save-md");
       const statusEl = document.getElementById("edit-save-status");
       if (btn) btn.textContent = "Đang lưu...";
       try {
         let saveOk = false;
+        let serverVersionRecorded = false;
         if (typeof STUDIO_CONFIG.onSaveDoc === "function") {
-          await STUDIO_CONFIG.onSaveDoc({ path: currentDocPath, content: newMd, author: currentUserEmail });
+          await STUDIO_CONFIG.onSaveDoc({ path: currentDocPath, content: newMd, author: currentUserEmail, summary });
           saveOk = true;
         } else if (STUDIO_CONFIG.embeddedDocs) {
           STUDIO_CONFIG.embeddedDocs[currentDocPath] = newMd;
@@ -3290,13 +4182,25 @@
               "Content-Type": "application/json"
             },
             credentials: "include",
-            body: JSON.stringify({ path: currentDocPath, content: newMd })
+            body: JSON.stringify({ path: currentDocPath, content: newMd, prev_content: prevMd, summary, action: "edit" })
           });
           saveOk = resp.ok;
+          if (resp.ok) {
+            try {
+              const resData = await resp.json();
+              if (resData && resData.version) {
+                serverVersionRecorded = true;
+              }
+            } catch (_) {}
+          }
         }
         if (saveOk) {
           if (STUDIO_CONFIG.embeddedDocs) {
             STUDIO_CONFIG.embeddedDocs[currentDocPath] = newMd;
+          }
+          recordLocalDocVersion(currentDocPath, prevMd, newMd, summary, "edit");
+          if (serverVersionRecorded && !STUDIO_CONFIG.embeddedDocs) {
+            syncDocHistoryState(currentDocPath, newMd);
           }
           currentRawMarkdown = newMd;
           const nowStr = new Date().toTimeString().slice(0, 5);
@@ -3316,7 +4220,7 @@
     }
 
     window.SrsWebviewStudio = {
-      version: "1.0.0",
+      version: "1.1.0",
       config: STUDIO_CONFIG,
       configure(overrides = {}) {
         Object.assign(STUDIO_CONFIG, overrides);
@@ -3328,7 +4232,10 @@
       getMarkdown: () => serializeArticleToMarkdown(),
       setMarkdown: (md) => renderMarkdownIntoArticle(md),
       toggleEditMode: () => toggleEditPage(),
-      save: (keepEditMode = false) => saveEditedMarkdown(keepEditMode),
+      save: (keepEditMode = false, summary = "") => saveEditedMarkdown(keepEditMode, summary),
+      openVersionHistory: (tab = "diff") => openVersionHistoryModal(tab),
+      revertToVersion: (versionId) => revertToVersion(versionId),
+      getVersions: (docPath = currentDocPath) => docVersionsCache[docPath] || [],
       parseMermaidToFlowGraph: (raw) => parseMermaidToFlowGraph(raw),
       serializeFlowGraphToMermaid: (graph) => serializeFlowGraphToMermaid(graph)
     };
@@ -3351,6 +4258,7 @@
     window.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         closeAllFullscreenMermaidCards();
+        closeVersionHistoryModal();
       }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();

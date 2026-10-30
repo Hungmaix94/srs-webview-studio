@@ -383,6 +383,43 @@ def cmd_serve(args) -> int:
                 self._send_json(200, {"ok": True, "path": rel_path, "content": content})
                 return
 
+            if route == "/api/srs-book/history":
+                qs = urllib.parse.parse_qs(parsed.query)
+                rel_path = (qs.get("path") or ["_index.md"])[0].lstrip("/")
+                hist_dir = docs_dir.parent / ".srs-history"
+                hist_file = hist_dir / f"{rel_path.replace('/', '__')}.json"
+                audit_file = hist_dir / "audit-log.json"
+                versions = []
+                if hist_file.is_file():
+                    try:
+                        versions = json.loads(hist_file.read_text(encoding="utf-8"))
+                    except Exception:
+                        versions = []
+                target = (docs_dir / rel_path).resolve()
+                if not versions and str(target).startswith(str(docs_dir)) and target.is_file():
+                    cur_text = target.read_text(encoding="utf-8", errors="replace")
+                    versions = [{
+                        "id": "v1",
+                        "version": 1,
+                        "doc_path": rel_path,
+                        "author": "local@studio.dev",
+                        "author_name": "Bản gốc khởi tạo",
+                        "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                        "action": "init",
+                        "summary": "Bản gốc khởi tạo",
+                        "added_lines": len(cur_text.splitlines()),
+                        "removed_lines": 0,
+                        "content": cur_text,
+                    }]
+                audit_log = []
+                if audit_file.is_file():
+                    try:
+                        audit_log = json.loads(audit_file.read_text(encoding="utf-8"))
+                    except Exception:
+                        audit_log = []
+                self._send_json(200, {"ok": True, "path": rel_path, "versions": versions, "audit_log": audit_log})
+                return
+
             self._send_json(404, {"ok": False, "error": "Not found"})
 
         def do_PUT(self):
@@ -391,14 +428,152 @@ def cmd_serve(args) -> int:
                 length = int(self.headers.get("Content-Length", "0"))
                 body = json.loads(self.rfile.read(length).decode("utf-8"))
                 rel_path = str(body.get("path") or "").lstrip("/")
-                content = body.get("content")
+                content = str(body.get("content") or "")
+                summary = str(body.get("summary") or "Cập nhật nội dung tài liệu").strip()
+                action = str(body.get("action") or "edit").strip()
                 target = (docs_dir / rel_path).resolve()
                 if not rel_path or not str(target).startswith(str(docs_dir)):
                     self._send_json(400, {"ok": False, "error": "Đường dẫn không hợp lệ"})
                     return
+                prev_text = target.read_text(encoding="utf-8", errors="replace") if target.is_file() else ""
+                hist_dir = docs_dir.parent / ".srs-history"
+                hist_dir.mkdir(parents=True, exist_ok=True)
+                hist_file = hist_dir / f"{rel_path.replace('/', '__')}.json"
+                audit_file = hist_dir / "audit-log.json"
+                versions = []
+                if hist_file.is_file():
+                    try:
+                        versions = json.loads(hist_file.read_text(encoding="utf-8"))
+                    except Exception:
+                        versions = []
+                now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                if not versions and prev_text:
+                    versions.append({
+                        "id": "v1",
+                        "version": 1,
+                        "doc_path": rel_path,
+                        "author": "local@studio.dev",
+                        "author_name": "Bản gốc khởi tạo",
+                        "timestamp": now_iso,
+                        "action": "init",
+                        "summary": "Bản gốc trước khi chỉnh sửa",
+                        "added_lines": len(prev_text.splitlines()),
+                        "removed_lines": 0,
+                        "content": prev_text,
+                    })
+                prev_set = set(prev_text.splitlines())
+                next_set = set(content.splitlines())
+                added = sum(1 for l in content.splitlines() if l not in prev_set)
+                removed = sum(1 for l in prev_text.splitlines() if l not in next_set)
+                next_ver = len(versions) + 1
+                new_ver = {
+                    "id": f"v{next_ver}",
+                    "version": next_ver,
+                    "doc_path": rel_path,
+                    "author": "local@studio.dev",
+                    "author_name": "Local Disk Sync",
+                    "timestamp": now_iso,
+                    "action": action,
+                    "summary": summary,
+                    "added_lines": added,
+                    "removed_lines": removed,
+                    "content": content,
+                }
+                versions.append(new_ver)
+                hist_file.write_text(json.dumps(versions, indent=2, ensure_ascii=False), encoding="utf-8")
+                audit_log = []
+                if audit_file.is_file():
+                    try:
+                        audit_log = json.loads(audit_file.read_text(encoding="utf-8"))
+                    except Exception:
+                        audit_log = []
+                audit_log.insert(0, {
+                    "id": f"audit-{int(datetime.now().timestamp() * 1000)}",
+                    "version_id": new_ver["id"],
+                    "version": new_ver["version"],
+                    "doc_path": rel_path,
+                    "author": new_ver["author"],
+                    "author_name": new_ver["author_name"],
+                    "timestamp": now_iso,
+                    "action": action,
+                    "summary": summary,
+                    "added_lines": added,
+                    "removed_lines": removed,
+                })
+                audit_file.write_text(json.dumps(audit_log[:200], indent=2, ensure_ascii=False), encoding="utf-8")
                 target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_text(str(content or ""), encoding="utf-8")
-                self._send_json(200, {"ok": True, "path": rel_path, "saved_to": str(target)})
+                target.write_text(content, encoding="utf-8")
+                self._send_json(200, {"ok": True, "path": rel_path, "saved_to": str(target), "version": new_ver, "versions_count": len(versions)})
+                return
+            self._send_json(404, {"ok": False, "error": "Not found"})
+
+        def do_POST(self):
+            parsed = urllib.parse.urlparse(self.path)
+            if parsed.path.rstrip("/") == "/api/srs-book/revert":
+                length = int(self.headers.get("Content-Length", "0"))
+                body = json.loads(self.rfile.read(length).decode("utf-8"))
+                rel_path = str(body.get("path") or "").lstrip("/")
+                ver_id = str(body.get("version_id") or "").strip()
+                hist_dir = docs_dir.parent / ".srs-history"
+                hist_file = hist_dir / f"{rel_path.replace('/', '__')}.json"
+                audit_file = hist_dir / "audit-log.json"
+                if not hist_file.is_file():
+                    self._send_json(404, {"ok": False, "error": "Chưa có lịch sử phiên bản"})
+                    return
+                versions = json.loads(hist_file.read_text(encoding="utf-8"))
+                target_ver = next((v for v in versions if v.get("id") == ver_id or str(v.get("version")) == ver_id), None)
+                if not target_ver:
+                    self._send_json(404, {"ok": False, "error": f"Không tìm thấy phiên bản {ver_id}"})
+                    return
+                restored = str(target_ver.get("content") or "")
+                target = (docs_dir / rel_path).resolve()
+                prev_text = target.read_text(encoding="utf-8", errors="replace") if target.is_file() else ""
+                prev_set = set(prev_text.splitlines())
+                next_set = set(restored.splitlines())
+                added = sum(1 for l in restored.splitlines() if l not in prev_set)
+                removed = sum(1 for l in prev_text.splitlines() if l not in next_set)
+                now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                next_ver = len(versions) + 1
+                summary = f"Khôi phục về phiên bản {target_ver['id']} ({target_ver.get('author', '')})"
+                new_ver = {
+                    "id": f"v{next_ver}",
+                    "version": next_ver,
+                    "doc_path": rel_path,
+                    "author": "local@studio.dev",
+                    "author_name": "Local Disk Sync",
+                    "timestamp": now_iso,
+                    "action": "revert",
+                    "reverted_from": target_ver["id"],
+                    "summary": summary,
+                    "added_lines": added,
+                    "removed_lines": removed,
+                    "content": restored,
+                }
+                versions.append(new_ver)
+                hist_file.write_text(json.dumps(versions, indent=2, ensure_ascii=False), encoding="utf-8")
+                audit_log = []
+                if audit_file.is_file():
+                    try:
+                        audit_log = json.loads(audit_file.read_text(encoding="utf-8"))
+                    except Exception:
+                        audit_log = []
+                audit_log.insert(0, {
+                    "id": f"audit-{int(datetime.now().timestamp() * 1000)}",
+                    "version_id": new_ver["id"],
+                    "version": new_ver["version"],
+                    "doc_path": rel_path,
+                    "author": new_ver["author"],
+                    "author_name": new_ver["author_name"],
+                    "timestamp": now_iso,
+                    "action": "revert",
+                    "reverted_from": target_ver["id"],
+                    "summary": summary,
+                    "added_lines": added,
+                    "removed_lines": removed,
+                })
+                audit_file.write_text(json.dumps(audit_log[:200], indent=2, ensure_ascii=False), encoding="utf-8")
+                target.write_text(restored, encoding="utf-8")
+                self._send_json(200, {"ok": True, "path": rel_path, "reverted_to": target_ver["id"], "content": restored, "version": new_ver, "versions": versions, "audit_log": audit_log})
                 return
             self._send_json(404, {"ok": False, "error": "Not found"})
 

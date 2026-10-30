@@ -583,6 +583,30 @@
       stroke-width: 2.8px;
       opacity: 1;
     }
+    .gb-diff-ins {
+      background: rgba(16, 185, 129, 0.18);
+      color: #065f46;
+      text-decoration: none;
+      border-bottom: 2px solid #10b981;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    html.dark .gb-diff-ins {
+      background: rgba(16, 185, 129, 0.22);
+      color: #6ee7b7;
+    }
+    .gb-diff-del {
+      background: rgba(244, 63, 94, 0.15);
+      color: #9f1239;
+      text-decoration: line-through;
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+    html.dark .gb-diff-del {
+      background: rgba(244, 63, 94, 0.22);
+      color: #fda4af;
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -760,6 +784,20 @@
         </nav>
 
         <div class="flex items-center gap-2 shrink-0">
+          <!-- Version History & Audit Log Button (Google Docs style) -->
+          <button
+            onclick="openVersionHistoryModal()"
+            id="btn-version-history"
+            title="Xem lịch sử phiên bản, ai sửa gì và khôi phục về bản cũ"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border gb-border-strong hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300"
+          >
+            <svg class="w-3.5 h-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>
+            </svg>
+            <span>Lịch sử</span>
+            <span id="version-count-badge" class="px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[10px] font-semibold leading-none">v1</span>
+          </button>
+
           <!-- Copy Markdown Button -->
           <button
             onclick="copyCurrentMarkdown()"
@@ -871,6 +909,106 @@
       </svg>
       <span>Mục lục</span>
     </button>
+  </div>
+
+  <!-- GOOGLE DOCS-STYLE VERSION HISTORY & AUDIT LOG MODAL -->
+  <div
+    id="version-history-modal"
+    onclick="if (event.target === this) closeVersionHistoryModal()"
+    class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm items-center justify-center p-3 sm:p-6"
+  >
+    <div class="w-full max-w-6xl h-[86vh] bg-white dark:bg-[#0f131a] border gb-border-strong rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+      <!-- Modal Top Header -->
+      <div class="h-14 px-5 border-b gb-border flex items-center justify-between gap-3 shrink-0 gb-surface">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-xl bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-semibold text-slate-900 dark:text-white truncate">Lịch sử phiên bản &amp; Nhật ký chỉnh sửa</h3>
+              <span id="vh-doc-path-label" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[11px] font-mono text-slate-500 truncate max-w-[260px]">_index.md</span>
+            </div>
+            <p class="text-[11px] text-slate-500">Theo dõi ai đã sửa nội dung gì, so sánh trực quan như Google Docs và khôi phục về bất kỳ phiên bản nào</p>
+          </div>
+        </div>
+
+        <!-- View Mode Tabs -->
+        <div class="inline-flex items-center p-0.5 rounded-xl border gb-border-strong bg-white dark:bg-slate-900 shrink-0 text-xs">
+          <button
+            type="button"
+            id="vh-tab-diff"
+            onclick="switchVersionHistoryTab('diff')"
+            class="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold text-xs"
+          >
+            So sánh thay đổi
+          </button>
+          <button
+            type="button"
+            id="vh-tab-preview"
+            onclick="switchVersionHistoryTab('preview')"
+            class="px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white font-medium text-xs"
+          >
+            Nội dung bản chụp
+          </button>
+          <button
+            type="button"
+            id="vh-tab-audit"
+            onclick="switchVersionHistoryTab('audit')"
+            class="px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white font-medium text-xs"
+          >
+            Nhật ký toàn trang
+          </button>
+        </div>
+
+        <!-- Revert & Close Actions -->
+        <div class="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            id="btn-revert-version"
+            onclick="revertSelectedVersion()"
+            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition disabled:opacity-40 disabled:pointer-events-none"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
+            </svg>
+            <span id="btn-revert-version-label">Khôi phục phiên bản này</span>
+          </button>
+          <button
+            type="button"
+            onclick="closeVersionHistoryModal()"
+            title="Đóng cửa sổ lịch sử (Esc)"
+            aria-label="Đóng cửa sổ lịch sử"
+            class="w-8 h-8 rounded-xl border gb-border-strong hover:bg-slate-100 dark:hover:bg-slate-800 inline-flex items-center justify-center text-slate-500"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Main 2-Pane Split -->
+      <div class="flex-1 flex min-h-0 overflow-hidden">
+        <!-- Left/Main Comparison & Diff Viewer -->
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <!-- Selected Version Metadata Sub-header -->
+          <div id="vh-selected-meta" class="px-5 py-3 border-b gb-border flex flex-wrap items-center justify-between gap-2 bg-slate-50/50 dark:bg-slate-900/30 text-xs"></div>
+
+          <!-- Scrollable Diff / Preview / Audit Table -->
+          <div id="vh-main-body" class="flex-1 overflow-y-auto p-5 space-y-4"></div>
+        </div>
+
+        <!-- Right Sidebar: Version Timeline (Google Docs style) -->
+        <aside class="w-80 shrink-0 border-l gb-border gb-surface flex flex-col min-h-0">
+          <div class="px-4 py-3 border-b gb-border flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-700 dark:text-slate-200">Dòng thời gian phiên bản</span>
+            <span id="vh-timeline-count" class="text-[11px] font-medium text-slate-400">1 phiên bản</span>
+          </div>
+          <div id="vh-timeline-list" class="flex-1 overflow-y-auto p-3 space-y-2"></div>
+        </aside>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -1498,6 +1636,8 @@
           currentRawMarkdown = data.content || "";
         }
         await renderMarkdownIntoArticle(currentRawMarkdown);
+        currentRawMarkdown = serializeArticleToMarkdown();
+        syncDocHistoryState(currentDocPath, currentRawMarkdown);
         renderPrevNextCards();
         if (effectiveTarget) {
           const normTarget = effectiveTarget.trim().toUpperCase();
@@ -2157,8 +2297,19 @@
       const tbl = block.querySelector("table");
       if (tbl) tbl.removeAttribute("contenteditable");
 
+      const tag = (block.tagName || "").toLowerCase();
+      const snippet = (block.textContent || "").replace(/\s+/g, " ").trim().slice(0, 48);
+      let summary = `Sửa đoạn văn: ${snippet}`;
+      if (block.classList.contains("gb-table-block") || tag === "table") {
+        summary = "Chỉnh sửa bảng dữ liệu";
+      } else if (/^h[1-6]$/.test(tag)) {
+        summary = `Sửa tiêu đề: ${snippet}`;
+      } else if (tag === "ul" || tag === "ol") {
+        summary = `Sửa danh sách: ${snippet}`;
+      }
+
       decorateEditableBlocks();
-      await saveEditedMarkdown(true);
+      await saveEditedMarkdown(true, summary);
     }
 
     function cancelBlockEdit(idx) {
@@ -3131,7 +3282,7 @@
       } catch (_) {}
 
       decorateEditableBlocks();
-      await saveEditedMarkdown(true);
+      await saveEditedMarkdown(true, "Cập nhật sơ đồ luồng (Mermaid)");
     }
 
     function cancelMermaidBlock(idx) {
@@ -3270,15 +3421,756 @@
       return out.filter(Boolean).join("\n\n") + "\n";
     }
 
-    async function saveEditedMarkdown(keepEditMode = false) {
+    // =========================================================================
+    // GOOGLE DOCS-STYLE VERSION HISTORY & AUDIT LOG ENGINE
+    // =========================================================================
+    const LOCAL_HISTORY_KEY = "srs_studio_doc_history_v1";
+    const LOCAL_AUDIT_KEY = "srs_studio_audit_log_v1";
+    const docVersionsCache = {};
+    let globalAuditLogCache = [];
+    let currentVhTab = "diff";
+    let selectedVersionId = "v1";
+
+    function loadLocalHistoryStore() {
+      try {
+        const raw = localStorage.getItem(LOCAL_HISTORY_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function saveLocalHistoryStore(store) {
+      try {
+        localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(store));
+      } catch (_) {}
+    }
+
+    function loadLocalAuditStore() {
+      try {
+        const raw = localStorage.getItem(LOCAL_AUDIT_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function saveLocalAuditStore(list) {
+      try {
+        localStorage.setItem(LOCAL_AUDIT_KEY, JSON.stringify((list || []).slice(0, 150)));
+      } catch (_) {}
+    }
+
+    function computeLineDiffStats(prevText, nextText) {
+      const prevLines = String(prevText || "").split("\n");
+      const nextLines = String(nextText || "").split("\n");
+      const prevSet = new Set(prevLines);
+      const nextSet = new Set(nextLines);
+      let added = 0;
+      let removed = 0;
+      for (const l of nextLines) {
+        if (!prevSet.has(l)) added++;
+      }
+      for (const l of prevLines) {
+        if (!nextSet.has(l)) removed++;
+      }
+      return { added, removed };
+    }
+
+    function autoDetectDiffSummary(prevMd, nextMd) {
+      const pLines = String(prevMd || "").split("\n");
+      const nLines = String(nextMd || "").split("\n");
+      for (let i = 0; i < Math.max(pLines.length, nLines.length); i++) {
+        if (pLines[i] !== nLines[i]) {
+          const sample = (nLines[i] || pLines[i] || "").replace(/^[#>*\-\s|]+/, "").trim().slice(0, 48);
+          if (sample) return `Chỉnh sửa: ${sample}`;
+        }
+      }
+      return "Cập nhật nội dung tài liệu";
+    }
+
+    function updateVersionBadgeUI(docPath) {
+      const badge = document.getElementById("version-count-badge");
+      if (!badge) return;
+      const list = docVersionsCache[docPath] || [];
+      const latest = list.length ? list[list.length - 1] : null;
+      badge.textContent = latest ? latest.id : "v1";
+    }
+
+    async function syncDocHistoryState(docPath, initialContent) {
+      const store = loadLocalHistoryStore();
+      const localList = Array.isArray(store[docPath]) ? store[docPath] : [];
+      if (!localList.length && initialContent) {
+        localList.push({
+          id: "v1",
+          version: 1,
+          doc_path: docPath,
+          author: "system@glinteco.com",
+          author_name: "Bản gốc khởi tạo",
+          timestamp: new Date().toISOString(),
+          action: "init",
+          summary: "Bản gốc khởi tạo",
+          added_lines: String(initialContent).split("\n").length,
+          removed_lines: 0,
+          content: initialContent
+        });
+        store[docPath] = localList;
+        saveLocalHistoryStore(store);
+      }
+      docVersionsCache[docPath] = localList;
+      globalAuditLogCache = loadLocalAuditStore();
+      updateVersionBadgeUI(docPath);
+
+      if (!STUDIO_CONFIG.embeddedDocs) {
+        try {
+          const resp = await fetch(`${WORKER_API_BASE}/api/srs-book/history?path=${encodeURIComponent(docPath)}`, {
+            credentials: "include"
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            if (data.ok && Array.isArray(data.versions) && data.versions.length) {
+              docVersionsCache[docPath] = data.versions;
+              store[docPath] = data.versions;
+              saveLocalHistoryStore(store);
+            }
+            if (data.ok && Array.isArray(data.audit_log)) {
+              globalAuditLogCache = data.audit_log;
+              saveLocalAuditStore(data.audit_log);
+            }
+            updateVersionBadgeUI(docPath);
+          }
+        } catch (_) {}
+      }
+    }
+
+    function recordLocalDocVersion(docPath, prevMd, nextMd, summary, action = "edit", extra = {}) {
+      const store = loadLocalHistoryStore();
+      let list = Array.isArray(docVersionsCache[docPath]) && docVersionsCache[docPath].length
+        ? docVersionsCache[docPath]
+        : (Array.isArray(store[docPath]) ? store[docPath] : []);
+
+      const nowIso = new Date().toISOString();
+      if (!list.length && prevMd) {
+        list.push({
+          id: "v1",
+          version: 1,
+          doc_path: docPath,
+          author: "system@glinteco.com",
+          author_name: "Bản gốc khởi tạo",
+          timestamp: nowIso,
+          action: "init",
+          summary: "Bản gốc trước khi chỉnh sửa",
+          added_lines: String(prevMd).split("\n").length,
+          removed_lines: 0,
+          content: prevMd
+        });
+      }
+
+      const { added, removed } = computeLineDiffStats(prevMd, nextMd);
+      const verNum = list.length + 1;
+      const authorEmail = currentUserEmail || STUDIO_CONFIG.localUserLabel || "hung.phamduc@glinteco.com";
+      const entry = Object.assign({
+        id: `v${verNum}`,
+        version: verNum,
+        doc_path: docPath,
+        author: authorEmail,
+        author_name: authorEmail,
+        timestamp: nowIso,
+        action,
+        summary: summary || autoDetectDiffSummary(prevMd, nextMd),
+        added_lines: added,
+        removed_lines: removed,
+        content: nextMd
+      }, extra);
+
+      list.push(entry);
+      docVersionsCache[docPath] = list;
+      store[docPath] = list;
+      saveLocalHistoryStore(store);
+
+      const auditList = loadLocalAuditStore();
+      auditList.unshift({
+        id: `audit-${Date.now()}`,
+        version_id: entry.id,
+        version: entry.version,
+        doc_path: docPath,
+        author: entry.author,
+        author_name: entry.author_name,
+        timestamp: nowIso,
+        action: entry.action,
+        reverted_from: entry.reverted_from || null,
+        summary: entry.summary,
+        added_lines: added,
+        removed_lines: removed
+      });
+      globalAuditLogCache = auditList;
+      saveLocalAuditStore(auditList);
+      updateVersionBadgeUI(docPath);
+      return entry;
+    }
+
+    function escapeHtmlText(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function computeWordDiffHtml(oldLine, newLine) {
+      const oldTokens = String(oldLine || "").split(/(\s+)/);
+      const newTokens = String(newLine || "").split(/(\s+)/);
+      const m = oldTokens.length;
+      const n = newTokens.length;
+      if (m * n > 25000) {
+        return `<del class="gb-diff-del">${escapeHtmlText(oldLine)}</del> <ins class="gb-diff-ins">${escapeHtmlText(newLine)}</ins>`;
+      }
+      const dp = Array.from({ length: m + 1 }, () => new Uint16Array(n + 1));
+      for (let i = m - 1; i >= 0; i--) {
+        for (let j = n - 1; j >= 0; j--) {
+          if (oldTokens[i] === newTokens[j]) {
+            dp[i][j] = dp[i + 1][j + 1] + 1;
+          } else {
+            dp[i][j] = Math.max(dp[i + 1][j], dp[i][j + 1]);
+          }
+        }
+      }
+      let i = 0;
+      let j = 0;
+      const parts = [];
+      while (i < m && j < n) {
+        if (oldTokens[i] === newTokens[j]) {
+          parts.push({ type: "eq", text: oldTokens[i] });
+          i++;
+          j++;
+        } else if (dp[i + 1][j] >= dp[i][j + 1]) {
+          parts.push({ type: "del", text: oldTokens[i] });
+          i++;
+        } else {
+          parts.push({ type: "ins", text: newTokens[j] });
+          j++;
+        }
+      }
+      while (i < m) parts.push({ type: "del", text: oldTokens[i++] });
+      while (j < n) parts.push({ type: "ins", text: newTokens[j++] });
+
+      const merged = [];
+      for (const p of parts) {
+        if (merged.length && merged[merged.length - 1].type === p.type) {
+          merged[merged.length - 1].text += p.text;
+        } else {
+          merged.push({ ...p });
+        }
+      }
+      return merged.map((seg) => {
+        if (seg.type === "ins") return `<ins class="gb-diff-ins">${escapeHtmlText(seg.text)}</ins>`;
+        if (seg.type === "del") return `<del class="gb-diff-del">${escapeHtmlText(seg.text)}</del>`;
+        return escapeHtmlText(seg.text);
+      }).join("");
+    }
+
+    function computeLineDiffOps(prevText, nextText) {
+      const a = String(prevText || "").split("\n");
+      const b = String(nextText || "").split("\n");
+      const m = a.length;
+      const n = b.length;
+
+      // Trim common prefix and suffix lines first so even 5,000-line files diff in < 1ms
+      let prefixLen = 0;
+      while (prefixLen < m && prefixLen < n && a[prefixLen] === b[prefixLen]) {
+        prefixLen++;
+      }
+      let suffixLen = 0;
+      while (
+        suffixLen < (m - prefixLen) &&
+        suffixLen < (n - prefixLen) &&
+        a[m - 1 - suffixLen] === b[n - 1 - suffixLen]
+      ) {
+        suffixLen++;
+      }
+
+      const rawOps = [];
+      for (let p = 0; p < prefixLen; p++) {
+        rawOps.push({ type: "eq", text: a[p], oldNo: p + 1, newNo: p + 1 });
+      }
+
+      const midA = a.slice(prefixLen, m - suffixLen);
+      const midB = b.slice(prefixLen, n - suffixLen);
+      const mm = midA.length;
+      const nn = midB.length;
+
+      if (mm * nn > 1500000) {
+        midA.forEach((line, idx) => rawOps.push({ type: "del", text: line, oldNo: prefixLen + idx + 1, newNo: null }));
+        midB.forEach((line, idx) => rawOps.push({ type: "ins", text: line, oldNo: null, newNo: prefixLen + idx + 1 }));
+      } else {
+        const dp = Array.from({ length: mm + 1 }, () => new Uint16Array(nn + 1));
+        for (let i = mm - 1; i >= 0; i--) {
+          for (let j = nn - 1; j >= 0; j--) {
+            if (midA[i] === midB[j]) {
+              dp[i][j] = dp[i + 1][j + 1] + 1;
+            } else {
+              dp[i][j] = Math.max(dp[i + 1][j], dp[i][j + 1]);
+            }
+          }
+        }
+        let i = 0;
+        let j = 0;
+        while (i < mm && j < nn) {
+          if (midA[i] === midB[j]) {
+            rawOps.push({ type: "eq", text: midA[i], oldNo: prefixLen + i + 1, newNo: prefixLen + j + 1 });
+            i++;
+            j++;
+          } else if (dp[i + 1][j] >= dp[i][j + 1]) {
+            rawOps.push({ type: "del", text: midA[i], oldNo: prefixLen + i + 1, newNo: null });
+            i++;
+          } else {
+            rawOps.push({ type: "ins", text: midB[j], oldNo: null, newNo: prefixLen + j + 1 });
+            j++;
+          }
+        }
+        while (i < mm) {
+          rawOps.push({ type: "del", text: midA[i], oldNo: prefixLen + i + 1, newNo: null });
+          i++;
+        }
+        while (j < nn) {
+          rawOps.push({ type: "ins", text: midB[j], oldNo: null, newNo: prefixLen + j + 1 });
+          j++;
+        }
+      }
+
+      for (let s = 0; s < suffixLen; s++) {
+        const oi = m - suffixLen + s;
+        const ni = n - suffixLen + s;
+        rawOps.push({ type: "eq", text: a[oi], oldNo: oi + 1, newNo: ni + 1 });
+      }
+
+      // Pair adjacent del + ins into inline word-diff rows (Google Docs style)
+      const paired = [];
+      for (let k = 0; k < rawOps.length; k++) {
+        const cur = rawOps[k];
+        const nxt = rawOps[k + 1];
+        if (cur.type === "del" && nxt && nxt.type === "ins" && cur.text.trim() && nxt.text.trim()) {
+          paired.push({
+            type: "mod",
+            oldLine: cur.text,
+            newLine: nxt.text,
+            oldNo: cur.oldNo,
+            newNo: nxt.newNo
+          });
+          k++;
+        } else {
+          paired.push(cur);
+        }
+      }
+      return paired;
+    }
+
+    function formatVhTimestamp(isoStr) {
+      if (!isoStr) return "";
+      try {
+        const d = new Date(isoStr);
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+      } catch (_) {
+        return isoStr;
+      }
+    }
+
+    async function openVersionHistoryModal(defaultTab = "diff") {
+      currentVhTab = defaultTab || "diff";
+      await syncDocHistoryState(currentDocPath, currentRawMarkdown);
+      const list = docVersionsCache[currentDocPath] || [];
+      if (list.length) {
+        selectedVersionId = list[list.length - 1].id;
+      }
+      const modal = document.getElementById("version-history-modal");
+      if (modal) {
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+      }
+      renderVersionHistoryModal();
+    }
+
+    function closeVersionHistoryModal() {
+      const modal = document.getElementById("version-history-modal");
+      if (modal) {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+      }
+    }
+
+    function switchVersionHistoryTab(tab) {
+      currentVhTab = tab;
+      ["diff", "preview", "audit"].forEach((t) => {
+        const btn = document.getElementById(`vh-tab-${t}`);
+        if (!btn) return;
+        if (t === tab) {
+          btn.className = "px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold text-xs";
+        } else {
+          btn.className = "px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white font-medium text-xs";
+        }
+      });
+      renderVersionHistoryModal();
+    }
+
+    function selectVersionHistoryItem(verId) {
+      selectedVersionId = verId;
+      renderVersionHistoryModal();
+    }
+
+    function renderVersionHistoryModal() {
+      const pathLbl = document.getElementById("vh-doc-path-label");
+      if (pathLbl) pathLbl.textContent = currentDocPath;
+
+      const list = docVersionsCache[currentDocPath] || [];
+      const countEl = document.getElementById("vh-timeline-count");
+      if (countEl) countEl.textContent = `${list.length} phiên bản`;
+
+      const selIdx = Math.max(0, list.findIndex((v) => v.id === selectedVersionId));
+      const selVer = list[selIdx] || list[list.length - 1];
+      const prevVer = selIdx > 0 ? list[selIdx - 1] : null;
+      const isLatest = selIdx === list.length - 1;
+
+      const revertBtn = document.getElementById("btn-revert-version");
+      const revertLbl = document.getElementById("btn-revert-version-label");
+      if (revertBtn) {
+        const canRevert = Boolean(selVer && (!isLatest || selVer.content !== currentRawMarkdown));
+        revertBtn.disabled = !canRevert;
+        if (revertLbl) {
+          revertLbl.textContent = selVer ? `Khôi phục về ${selVer.id}` : "Khôi phục phiên bản này";
+        }
+      }
+
+      // Render Timeline Right Sidebar
+      const timelineEl = document.getElementById("vh-timeline-list");
+      if (timelineEl) {
+        timelineEl.innerHTML = [...list].reverse().map((v, revIdx) => {
+          const active = selVer && v.id === selVer.id;
+          const isCurrent = revIdx === 0;
+          const badgeColor = v.action === "revert"
+            ? "bg-amber-500/15 text-amber-700 dark:text-amber-400"
+            : v.action === "init"
+              ? "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+              : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400";
+          const actionText = v.action === "revert"
+            ? "Khôi phục"
+            : v.action === "init"
+              ? "Bản gốc"
+              : (isCurrent ? "Hiện tại" : "Chỉnh sửa");
+          return `
+            <div
+              onclick="selectVersionHistoryItem('${v.id}')"
+              data-version-card="${v.id}"
+              class="p-3 rounded-xl border transition cursor-pointer ${
+                active
+                  ? "border-emerald-500 bg-emerald-500/5 shadow-sm"
+                  : "gb-border bg-white dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-slate-700"
+              }"
+            >
+              <div class="flex items-center justify-between gap-2 mb-1.5">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-2 py-0.5 rounded-md font-mono font-bold text-[11px] ${badgeColor}">${v.id}</span>
+                  <span class="text-[11px] font-semibold text-slate-700 dark:text-slate-200">${actionText}</span>
+                </div>
+                <span class="text-[10.5px] font-mono text-slate-400">
+                  <span class="text-emerald-600 dark:text-emerald-400">+${v.added_lines || 0}</span> /
+                  <span class="text-rose-500">-${v.removed_lines || 0}</span>
+                </span>
+              </div>
+              <div class="text-xs font-medium text-slate-800 dark:text-slate-100 line-clamp-2 mb-1.5">
+                ${escapeHtmlText(v.summary || "Cập nhật tài liệu")}
+              </div>
+              <div class="flex items-center justify-between gap-2 text-[11px] text-slate-500">
+                <span class="inline-flex items-center gap-1 truncate">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                  <span class="truncate">${escapeHtmlText(v.author || "system")}</span>
+                </span>
+                <span class="shrink-0 font-mono text-[10px] text-slate-400">${formatVhTimestamp(v.timestamp)}</span>
+              </div>
+              ${
+                !isCurrent
+                  ? `<div class="mt-2 pt-2 border-t gb-border flex justify-end">
+                       <button
+                         type="button"
+                         onclick="event.stopPropagation(); revertToVersion('${v.id}')"
+                         class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
+                       >
+                         ↺ Khôi phục bản ${v.id}
+                       </button>
+                     </div>`
+                  : ""
+              }
+            </div>
+          `;
+        }).join("");
+      }
+
+      // Render Selected Version Metadata Header
+      const metaEl = document.getElementById("vh-selected-meta");
+      if (metaEl && selVer) {
+        metaEl.innerHTML = `
+          <div class="flex flex-wrap items-center gap-2.5">
+            <span class="px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-mono font-bold text-xs">${selVer.id}</span>
+            <span class="font-semibold text-slate-800 dark:text-slate-100">${escapeHtmlText(selVer.summary || "")}</span>
+            <span class="text-slate-400">•</span>
+            <span class="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <strong>Người sửa:</strong> ${escapeHtmlText(selVer.author || "")}
+            </span>
+            <span class="text-slate-400">•</span>
+            <span class="text-slate-500 font-mono text-[11px]">${formatVhTimestamp(selVer.timestamp)}</span>
+          </div>
+          <div class="flex items-center gap-2 text-[11px] font-mono">
+            <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold">+${selVer.added_lines || 0} dòng thêm</span>
+            <span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 font-semibold">-${selVer.removed_lines || 0} dòng xóa</span>
+          </div>
+        `;
+      }
+
+      const bodyEl = document.getElementById("vh-main-body");
+      if (!bodyEl || !selVer) return;
+
+      if (currentVhTab === "audit") {
+        const auditRows = (globalAuditLogCache && globalAuditLogCache.length)
+          ? globalAuditLogCache
+          : [...list].reverse();
+        bodyEl.innerHTML = `
+          <div class="rounded-xl border gb-border overflow-hidden">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="gb-surface border-b gb-border text-slate-500 font-semibold">
+                  <th class="py-2.5 px-3">Thời gian</th>
+                  <th class="py-2.5 px-3">Người thực hiện</th>
+                  <th class="py-2.5 px-3">Tài liệu</th>
+                  <th class="py-2.5 px-3">Phiên bản</th>
+                  <th class="py-2.5 px-3">Chi tiết thay đổi</th>
+                  <th class="py-2.5 px-3 text-right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y gb-border">
+                ${auditRows.map((row) => `
+                  <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                    <td class="py-2.5 px-3 font-mono text-[11px] text-slate-500 whitespace-nowrap">${formatVhTimestamp(row.timestamp)}</td>
+                    <td class="py-2.5 px-3 font-medium text-slate-800 dark:text-slate-200 whitespace-nowrap">
+                      <span class="inline-flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        ${escapeHtmlText(row.author || "")}
+                      </span>
+                    </td>
+                    <td class="py-2.5 px-3 font-mono text-[11px] text-slate-600 dark:text-slate-400">${escapeHtmlText(row.doc_path || currentDocPath)}</td>
+                    <td class="py-2.5 px-3">
+                      <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-mono font-semibold text-[11px]">${escapeHtmlText(row.version_id || row.id || "v1")}</span>
+                    </td>
+                    <td class="py-2.5 px-3 text-slate-700 dark:text-slate-300">
+                      ${escapeHtmlText(row.summary || "")}
+                      <span class="ml-1.5 font-mono text-[10.5px] text-slate-400">(+${row.added_lines || 0} / -${row.removed_lines || 0})</span>
+                    </td>
+                    <td class="py-2.5 px-3 text-right whitespace-nowrap">
+                      ${
+                        (row.doc_path || currentDocPath) === currentDocPath
+                          ? `<button type="button" onclick="selectVersionHistoryItem('${row.version_id || row.id}'); switchVersionHistoryTab('diff')" class="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline">Xem so sánh</button>`
+                          : `<button type="button" onclick="closeVersionHistoryModal(); openDoc('${row.doc_path}')" class="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline">Mở trang</button>`
+                      }
+                    </td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+        return;
+      }
+
+      if (currentVhTab === "preview") {
+        bodyEl.innerHTML = `
+          <div class="rounded-xl border gb-border p-4 bg-slate-50/40 dark:bg-slate-900/40">
+            <div class="text-[11px] font-semibold text-slate-400 mb-2">NỘI DUNG MARKDOWN CỦA PHIÊN BẢN ${selVer.id.toUpperCase()}</div>
+            <pre class="text-xs font-mono whitespace-pre-wrap break-words text-slate-800 dark:text-slate-200 leading-relaxed">${escapeHtmlText(selVer.content || "")}</pre>
+          </div>
+        `;
+        return;
+      }
+
+      // Default: Google Docs-style Visual Diff ("diff" tab)
+      const baseText = prevVer ? prevVer.content : selVer.content;
+      const ops = computeLineDiffOps(baseText, selVer.content);
+      const changedOps = ops.filter((op) => op.type !== "eq");
+
+      const summaryHighlightHtml = changedOps.length
+        ? `
+          <div class="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+                Điểm thay đổi chính so với ${prevVer ? `phiên bản ${prevVer.id}` : "bản gốc"} (${changedOps.length} vị trí):
+              </span>
+              <span class="text-[11px] text-slate-500">
+                <ins class="gb-diff-ins mr-1.5">Chữ thêm mới</ins>
+                <del class="gb-diff-del">Chữ đã xóa</del>
+              </span>
+            </div>
+            <div class="space-y-1.5 text-xs font-mono">
+              ${changedOps.slice(0, 12).map((op) => {
+                if (op.type === "mod") {
+                  return `<div class="p-2 rounded-lg bg-white dark:bg-slate-900 border gb-border leading-relaxed">
+                    <span class="text-slate-400 mr-2">Dòng ${op.newNo}:</span>
+                    ${computeWordDiffHtml(op.oldLine, op.newLine)}
+                  </div>`;
+                }
+                if (op.type === "ins") {
+                  return `<div class="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 leading-relaxed">
+                    <span class="text-emerald-600 font-bold mr-2">+ Dòng ${op.newNo}:</span>
+                    <ins class="gb-diff-ins">${escapeHtmlText(op.text)}</ins>
+                  </div>`;
+                }
+                return `<div class="p-2 rounded-lg bg-rose-500/10 border border-rose-500/20 leading-relaxed">
+                  <span class="text-rose-600 font-bold mr-2">− Dòng ${op.oldNo}:</span>
+                  <del class="gb-diff-del">${escapeHtmlText(op.text)}</del>
+                </div>`;
+              }).join("")}
+            </div>
+          </div>
+        `
+        : `
+          <div class="rounded-xl border gb-border p-3.5 bg-slate-50/60 dark:bg-slate-900/40 text-xs text-slate-500 flex items-center justify-between">
+            <span>${prevVer ? `Không có khác biệt nội dung so với ${prevVer.id}.` : "Đây là phiên bản gốc khởi tạo (v1) của tài liệu."}</span>
+            <span class="text-[11px]">Chọn một phiên bản khác ở cột bên phải để đối chiếu hoặc khôi phục.</span>
+          </div>
+        `;
+
+      const fullDiffLinesHtml = ops.map((op) => {
+        if (op.type === "mod") {
+          return `
+            <div class="flex items-start gap-3 px-3 py-1.5 bg-amber-500/10 border-l-2 border-amber-500 font-mono text-xs">
+              <span class="w-10 shrink-0 text-right text-[10.5px] text-amber-600 select-none">${op.newNo || ""}</span>
+              <span class="w-4 shrink-0 font-bold text-amber-600 select-none">±</span>
+              <div class="flex-1 break-words whitespace-pre-wrap">${computeWordDiffHtml(op.oldLine, op.newLine)}</div>
+            </div>
+          `;
+        }
+        if (op.type === "ins") {
+          return `
+            <div class="flex items-start gap-3 px-3 py-1 bg-emerald-500/10 border-l-2 border-emerald-500 font-mono text-xs">
+              <span class="w-10 shrink-0 text-right text-[10.5px] text-emerald-600 select-none">${op.newNo || ""}</span>
+              <span class="w-4 shrink-0 font-bold text-emerald-600 select-none">+</span>
+              <div class="flex-1 break-words whitespace-pre-wrap text-emerald-900 dark:text-emerald-200">${escapeHtmlText(op.text)}</div>
+            </div>
+          `;
+        }
+        if (op.type === "del") {
+          return `
+            <div class="flex items-start gap-3 px-3 py-1 bg-rose-500/10 border-l-2 border-rose-500 font-mono text-xs">
+              <span class="w-10 shrink-0 text-right text-[10.5px] text-rose-500 select-none">${op.oldNo || ""}</span>
+              <span class="w-4 shrink-0 font-bold text-rose-500 select-none">−</span>
+              <div class="flex-1 break-words whitespace-pre-wrap text-rose-800 dark:text-rose-300 line-through">${escapeHtmlText(op.text)}</div>
+            </div>
+          `;
+        }
+        return `
+          <div class="flex items-start gap-3 px-3 py-0.5 font-mono text-xs text-slate-600 dark:text-slate-400">
+            <span class="w-10 shrink-0 text-right text-[10.5px] text-slate-400 select-none">${op.newNo || ""}</span>
+            <span class="w-4 shrink-0 select-none"> </span>
+            <div class="flex-1 break-words whitespace-pre-wrap">${escapeHtmlText(op.text)}</div>
+          </div>
+        `;
+      }).join("");
+
+      bodyEl.innerHTML = `
+        ${summaryHighlightHtml}
+        <div class="rounded-xl border gb-border overflow-hidden bg-white dark:bg-slate-950">
+          <div class="px-3.5 py-2 border-b gb-border gb-surface text-[11px] font-semibold text-slate-500 flex items-center justify-between">
+            <span>Toàn bộ tài liệu kèm đánh dấu dòng thay đổi</span>
+            <span class="font-mono text-[10.5px]">${prevVer ? `${prevVer.id} → ${selVer.id}` : selVer.id}</span>
+          </div>
+          <div class="divide-y divide-slate-100 dark:divide-slate-900 py-1">
+            ${fullDiffLinesHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    async function revertSelectedVersion() {
+      if (!selectedVersionId) return;
+      await revertToVersion(selectedVersionId);
+    }
+
+    async function revertToVersion(targetVerId) {
+      const list = docVersionsCache[currentDocPath] || [];
+      const targetVer = list.find((v) => v.id === targetVerId);
+      if (!targetVer) return;
+
+      const revertBtn = document.getElementById("btn-revert-version");
+      const revertLbl = document.getElementById("btn-revert-version-label");
+      if (revertBtn) revertBtn.disabled = true;
+      if (revertLbl) revertLbl.textContent = "Đang khôi phục...";
+
+      const prevMd = currentRawMarkdown;
+      const restoredMd = String(targetVer.content || "");
+      const summary = `Khôi phục về phiên bản ${targetVer.id} (${targetVer.author || "bản gốc"})`;
+
+      try {
+        let serverHandled = false;
+        if (!STUDIO_CONFIG.embeddedDocs) {
+          try {
+            const resp = await fetch(`${WORKER_API_BASE}/api/srs-book/revert`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({ path: currentDocPath, version_id: targetVer.id })
+            });
+            if (resp.ok) {
+              const data = await resp.json();
+              if (data.ok && Array.isArray(data.versions)) {
+                docVersionsCache[currentDocPath] = data.versions;
+                const store = loadLocalHistoryStore();
+                store[currentDocPath] = data.versions;
+                saveLocalHistoryStore(store);
+                if (Array.isArray(data.audit_log)) {
+                  globalAuditLogCache = data.audit_log;
+                  saveLocalAuditStore(data.audit_log);
+                }
+                serverHandled = true;
+              }
+            }
+          } catch (_) {}
+        }
+
+        if (!serverHandled) {
+          recordLocalDocVersion(currentDocPath, prevMd, restoredMd, summary, "revert", {
+            reverted_from: targetVer.id
+          });
+        }
+
+        if (STUDIO_CONFIG.embeddedDocs) {
+          STUDIO_CONFIG.embeddedDocs[currentDocPath] = restoredMd;
+        }
+        currentRawMarkdown = restoredMd;
+        updateVersionBadgeUI(currentDocPath);
+        await renderMarkdownIntoArticle(currentRawMarkdown);
+        if (isBlockEditMode) {
+          decorateEditableBlocks();
+        }
+
+        const updatedList = docVersionsCache[currentDocPath] || [];
+        if (updatedList.length) {
+          selectedVersionId = updatedList[updatedList.length - 1].id;
+        }
+        renderVersionHistoryModal();
+      } finally {
+        if (revertBtn) revertBtn.disabled = false;
+      }
+    }
+
+    async function saveEditedMarkdown(keepEditMode = false, customSummary = "") {
+      const prevMd = currentRawMarkdown;
       const newMd = serializeArticleToMarkdown();
+      const summary = customSummary || autoDetectDiffSummary(prevMd, newMd);
       const btn = document.getElementById("btn-save-md");
       const statusEl = document.getElementById("edit-save-status");
       if (btn) btn.textContent = "Đang lưu...";
       try {
         let saveOk = false;
+        let serverVersionRecorded = false;
         if (typeof STUDIO_CONFIG.onSaveDoc === "function") {
-          await STUDIO_CONFIG.onSaveDoc({ path: currentDocPath, content: newMd, author: currentUserEmail });
+          await STUDIO_CONFIG.onSaveDoc({ path: currentDocPath, content: newMd, author: currentUserEmail, summary });
           saveOk = true;
         } else if (STUDIO_CONFIG.embeddedDocs) {
           STUDIO_CONFIG.embeddedDocs[currentDocPath] = newMd;
@@ -3290,13 +4182,25 @@
               "Content-Type": "application/json"
             },
             credentials: "include",
-            body: JSON.stringify({ path: currentDocPath, content: newMd })
+            body: JSON.stringify({ path: currentDocPath, content: newMd, prev_content: prevMd, summary, action: "edit" })
           });
           saveOk = resp.ok;
+          if (resp.ok) {
+            try {
+              const resData = await resp.json();
+              if (resData && resData.version) {
+                serverVersionRecorded = true;
+              }
+            } catch (_) {}
+          }
         }
         if (saveOk) {
           if (STUDIO_CONFIG.embeddedDocs) {
             STUDIO_CONFIG.embeddedDocs[currentDocPath] = newMd;
+          }
+          recordLocalDocVersion(currentDocPath, prevMd, newMd, summary, "edit");
+          if (serverVersionRecorded && !STUDIO_CONFIG.embeddedDocs) {
+            syncDocHistoryState(currentDocPath, newMd);
           }
           currentRawMarkdown = newMd;
           const nowStr = new Date().toTimeString().slice(0, 5);
@@ -3316,7 +4220,7 @@
     }
 
     window.SrsWebviewStudio = {
-      version: "1.0.0",
+      version: "1.1.0",
       config: STUDIO_CONFIG,
       configure(overrides = {}) {
         Object.assign(STUDIO_CONFIG, overrides);
@@ -3328,7 +4232,10 @@
       getMarkdown: () => serializeArticleToMarkdown(),
       setMarkdown: (md) => renderMarkdownIntoArticle(md),
       toggleEditMode: () => toggleEditPage(),
-      save: (keepEditMode = false) => saveEditedMarkdown(keepEditMode),
+      save: (keepEditMode = false, summary = "") => saveEditedMarkdown(keepEditMode, summary),
+      openVersionHistory: (tab = "diff") => openVersionHistoryModal(tab),
+      revertToVersion: (versionId) => revertToVersion(versionId),
+      getVersions: (docPath = currentDocPath) => docVersionsCache[docPath] || [],
       parseMermaidToFlowGraph: (raw) => parseMermaidToFlowGraph(raw),
       serializeFlowGraphToMermaid: (graph) => serializeFlowGraphToMermaid(graph)
     };
@@ -3351,6 +4258,7 @@
     window.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         closeAllFullscreenMermaidCards();
+        closeVersionHistoryModal();
       }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
