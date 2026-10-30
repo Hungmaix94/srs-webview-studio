@@ -249,9 +249,83 @@
       border-top: 1px solid var(--gb-border);
       margin: 2rem 0;
     }
+    .gb-mermaid-card {
+      position: relative;
+      margin: 2rem 0;
+      overflow: hidden;
+    }
     .gb-mermaid-card svg {
       max-width: 100%;
       height: auto;
+    }
+    .gb-mermaid-svg-wrap {
+      cursor: grab;
+      user-select: none;
+      transform-origin: center center;
+      transition: transform 120ms ease;
+    }
+    .gb-mermaid-svg-wrap.is-panning {
+      cursor: grabbing;
+      transition: none;
+    }
+    .gb-mermaid-controls {
+      position: absolute;
+      bottom: 0.6rem;
+      right: 0.6rem;
+      z-index: 16;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 3px;
+      border-radius: 0.55rem;
+      border: 1px solid var(--gb-border-strong);
+      background: var(--gb-header-bg);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    }
+    .gb-mermaid-controls button {
+      height: 1.6rem;
+      min-width: 1.6rem;
+      padding: 0 0.35rem;
+      border-radius: 0.375rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--gb-muted);
+      transition: background-color 120ms ease, color 120ms ease;
+    }
+    .gb-mermaid-controls button:hover {
+      background: var(--gb-accent-soft);
+      color: var(--gb-accent);
+    }
+    .gb-mermaid-card.gb-mermaid-fullscreen {
+      position: fixed !important;
+      inset: 1.25rem !important;
+      z-index: 70 !important;
+      margin: 0 !important;
+      background: var(--gb-bg) !important;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45) !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      align-items: center !important;
+    }
+    .gb-mermaid-card.gb-block-editing.gb-mermaid-fullscreen {
+      justify-content: flex-start !important;
+      align-items: stretch !important;
+    }
+    .gb-mermaid-card.gb-mermaid-fullscreen > .gb-mermaid-svg-wrap {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .gb-mermaid-card.gb-mermaid-fullscreen .gb-flow-canvas-viewport {
+      height: calc(100vh - 7.5rem) !important;
     }
     .gb-mermaid-card foreignObject {
       overflow: visible !important;
@@ -1543,6 +1617,7 @@
           const { svg } = await mermaid.render(`mmd-${Date.now()}-${i}`, rawCode);
           card.innerHTML = `<div class="gb-mermaid-svg-wrap w-full overflow-x-auto flex justify-center">${svg}</div>`;
           enhanceMermaidSvg(card);
+          mountMermaidReadInteractive(card);
           preNode.replaceWith(card);
         } catch (_) {}
       }
@@ -1550,6 +1625,132 @@
       if (isBlockEditMode) {
         decorateEditableBlocks();
       }
+    }
+
+    function ensureMermaidFullscreenBackdrop() {
+      let bd = document.getElementById("gb-mermaid-fs-backdrop");
+      if (!bd) {
+        bd = document.createElement("div");
+        bd.id = "gb-mermaid-fs-backdrop";
+        bd.className = "fixed inset-0 z-[65] bg-slate-950/60 backdrop-blur-sm hidden";
+        bd.onclick = () => closeAllFullscreenMermaidCards();
+        document.body.appendChild(bd);
+      }
+      return bd;
+    }
+
+    function closeAllFullscreenMermaidCards() {
+      document.querySelectorAll(".gb-mermaid-card.gb-mermaid-fullscreen").forEach((c) => {
+        c.classList.remove("gb-mermaid-fullscreen");
+        const fsBtn = c.querySelector("[data-mmd-fs-label]");
+        if (fsBtn) fsBtn.textContent = "Toàn màn hình";
+      });
+      const bd = document.getElementById("gb-mermaid-fs-backdrop");
+      if (bd) bd.classList.add("hidden");
+    }
+
+    function toggleMermaidCardFullscreen(cardEl, ev) {
+      if (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+      }
+      if (!cardEl) return;
+      const bd = ensureMermaidFullscreenBackdrop();
+      const willOpen = !cardEl.classList.contains("gb-mermaid-fullscreen");
+      if (willOpen) {
+        closeAllFullscreenMermaidCards();
+        cardEl.classList.add("gb-mermaid-fullscreen");
+        bd.classList.remove("hidden");
+      } else {
+        cardEl.classList.remove("gb-mermaid-fullscreen");
+        bd.classList.add("hidden");
+      }
+      const fsBtn = cardEl.querySelector("[data-mmd-fs-label]");
+      if (fsBtn) fsBtn.textContent = willOpen ? "Thu nhỏ (Esc)" : "Toàn màn hình";
+    }
+
+    function mountMermaidReadInteractive(card) {
+      if (!card) return;
+      const wrap = card.querySelector(".gb-mermaid-svg-wrap");
+      if (!wrap) return;
+      card._mmdZoom = 1;
+      card._mmdPanX = 0;
+      card._mmdPanY = 0;
+
+      const existingCtrl = card.querySelector(":scope > .gb-mermaid-controls");
+      if (existingCtrl) existingCtrl.remove();
+
+      const ctrl = document.createElement("div");
+      ctrl.className = "gb-mermaid-controls";
+      ctrl.setAttribute("onpointerdown", "event.stopPropagation()");
+      ctrl.innerHTML = `
+        <button type="button" data-mmd-act="out" title="Thu nhỏ sơ đồ (−)">−</button>
+        <button type="button" data-mmd-act="reset" title="Đặt lại tỷ lệ 100%"><span data-mmd-zoom-lbl>100%</span></button>
+        <button type="button" data-mmd-act="in" title="Phóng to sơ đồ (+)">+</button>
+        <button type="button" data-mmd-act="fullscreen" title="Xem toàn màn hình (Esc để đóng)" class="gap-1 px-2">
+          <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+          <span data-mmd-fs-label class="hidden sm:inline text-[10.5px]">Toàn màn hình</span>
+        </button>
+      `;
+
+      const applyTransform = () => {
+        const z = Math.round(card._mmdZoom * 100);
+        wrap.style.transform = `translate(${card._mmdPanX}px, ${card._mmdPanY}px) scale(${card._mmdZoom})`;
+        const lbl = ctrl.querySelector("[data-mmd-zoom-lbl]");
+        if (lbl) lbl.textContent = `${z}%`;
+      };
+
+      ctrl.querySelector('[data-mmd-act="out"]').onclick = (e) => {
+        e.stopPropagation();
+        card._mmdZoom = Math.max(0.4, Math.round((card._mmdZoom - 0.2) * 10) / 10);
+        applyTransform();
+      };
+      ctrl.querySelector('[data-mmd-act="in"]').onclick = (e) => {
+        e.stopPropagation();
+        card._mmdZoom = Math.min(3.0, Math.round((card._mmdZoom + 0.2) * 10) / 10);
+        applyTransform();
+      };
+      ctrl.querySelector('[data-mmd-act="reset"]').onclick = (e) => {
+        e.stopPropagation();
+        card._mmdZoom = 1;
+        card._mmdPanX = 0;
+        card._mmdPanY = 0;
+        applyTransform();
+      };
+      ctrl.querySelector('[data-mmd-act="fullscreen"]').onclick = (e) => {
+        toggleMermaidCardFullscreen(card, e);
+      };
+
+      wrap.onpointerdown = (ev) => {
+        if (ev.button !== 0) return;
+        const startX = ev.clientX;
+        const startY = ev.clientY;
+        const origPanX = card._mmdPanX || 0;
+        const origPanY = card._mmdPanY || 0;
+        wrap.classList.add("is-panning");
+        const onMove = (mEv) => {
+          card._mmdPanX = origPanX + (mEv.clientX - startX);
+          card._mmdPanY = origPanY + (mEv.clientY - startY);
+          applyTransform();
+        };
+        const onUp = () => {
+          wrap.classList.remove("is-panning");
+          window.removeEventListener("pointermove", onMove);
+          window.removeEventListener("pointerup", onUp);
+        };
+        window.addEventListener("pointermove", onMove);
+        window.addEventListener("pointerup", onUp);
+      };
+
+      card.onwheel = (ev) => {
+        if (!ev.ctrlKey && !ev.metaKey && !card.classList.contains("gb-mermaid-fullscreen")) return;
+        ev.preventDefault();
+        const delta = ev.deltaY < 0 ? 0.15 : -0.15;
+        card._mmdZoom = Math.min(3.0, Math.max(0.4, Math.round((card._mmdZoom + delta) * 100) / 100));
+        applyTransform();
+      };
+
+      card.appendChild(ctrl);
     }
 
     function enhanceMermaidSvg(containerEl) {
@@ -2367,8 +2568,12 @@
         if (n.x + 220 > maxX) maxX = n.x + 220;
         if (n.y + 96 > maxY) maxY = n.y + 96;
       });
+      const z = graph.zoom || 1;
       stage.style.width = `${maxX}px`;
       stage.style.height = `${maxY}px`;
+      stage.style.transform = `scale(${z})`;
+      const zLbl = document.getElementById(`mmd-canvas-zoom-lbl-${idx}`);
+      if (zLbl) zLbl.textContent = `${Math.round(z * 100)}%`;
 
       // Compute subgraph bounding boxes
       const sgHtml = (graph.subgraphs || []).map((sg) => {
@@ -2527,8 +2732,9 @@
       }
 
       const onMove = (moveEv) => {
-        const dx = moveEv.clientX - startX;
-        const dy = moveEv.clientY - startY;
+        const z = graph.zoom || 1;
+        const dx = (moveEv.clientX - startX) / z;
+        const dy = (moveEv.clientY - startY) / z;
         if (Math.abs(dx) > 2 || Math.abs(dy) > 2) moved = true;
         node.x = Math.max(12, Math.round(origX + dx));
         node.y = Math.max(12, Math.round(origY + dy));
@@ -2597,9 +2803,10 @@
       const p1 = getNodePortCoords(fromNode, "out", graph.direction);
 
       const onMove = (moveEv) => {
+        const z = graph.zoom || 1;
         const rect = stage.getBoundingClientRect();
-        const x2 = moveEv.clientX - rect.left;
-        const y2 = moveEv.clientY - rect.top;
+        const x2 = (moveEv.clientX - rect.left) / z;
+        const y2 = (moveEv.clientY - rect.top) / z;
         tempPath.setAttribute("d", buildBezierPath(p1.x, p1.y, x2, y2, graph.direction));
       };
 
@@ -2732,6 +2939,25 @@
       renderFlowCanvas(idx);
     }
 
+    function zoomFlowCanvas(idx, delta) {
+      const graph = flowCanvasStates[idx];
+      if (!graph) return;
+      if (delta === 0) {
+        graph.zoom = 1;
+      } else {
+        const cur = graph.zoom || 1;
+        graph.zoom = Math.min(2.4, Math.max(0.5, Math.round((cur + delta) * 10) / 10));
+      }
+      renderFlowCanvas(idx);
+    }
+
+    function toggleFlowCanvasFullscreen(idx, ev) {
+      const blocks = getEditableBlockElements();
+      const card = blocks[idx];
+      if (!card) return;
+      toggleMermaidCardFullscreen(card, ev);
+    }
+
     function toggleMermaidDirection(idx) {
       const graph = flowCanvasStates[idx];
       if (graph) {
@@ -2802,6 +3028,10 @@
               <button type="button" onclick="autoLayoutFlowCanvas(${idx})" class="h-7 w-7 rounded-md border gb-border-strong hover:border-emerald-500 inline-flex items-center justify-center" title="Tự động căn đều" aria-label="Tự động căn đều">
                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
               </button>
+              <button type="button" onclick="toggleFlowCanvasFullscreen(${idx}, event)" class="h-7 px-2 rounded-md border gb-border-strong hover:border-emerald-500 inline-flex items-center gap-1 text-[11px] font-medium" title="Mở rộng toàn màn hình (Esc để đóng)">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+                <span data-mmd-fs-label class="hidden sm:inline">Toàn màn hình</span>
+              </button>
             </div>
 
             <div class="flex items-center gap-1.5">
@@ -2814,9 +3044,17 @@
             </div>
           </div>
 
-          <div id="mmd-canvas-pane-${idx}">
+          <div id="mmd-canvas-pane-${idx}" class="relative">
             <div class="gb-flow-canvas-viewport" id="mmd-canvas-viewport-${idx}" onclick="clearFlowCanvasSelection(${idx}, event)">
               <div class="gb-flow-canvas-stage" id="mmd-canvas-stage-${idx}"></div>
+            </div>
+            <div class="gb-mermaid-controls" onpointerdown="event.stopPropagation()">
+              <button type="button" onclick="zoomFlowCanvas(${idx}, -0.2)" title="Thu nhỏ (−)">−</button>
+              <button type="button" onclick="zoomFlowCanvas(${idx}, 0)" title="Đặt lại 100%"><span id="mmd-canvas-zoom-lbl-${idx}">100%</span></button>
+              <button type="button" onclick="zoomFlowCanvas(${idx}, 0.2)" title="Phóng to (+)">+</button>
+              <button type="button" onclick="toggleFlowCanvasFullscreen(${idx}, event)" title="Toàn màn hình (Esc)" class="px-1.5">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+              </button>
             </div>
           </div>
 
@@ -2874,6 +3112,7 @@
     }
 
     async function commitMermaidBlock(idx) {
+      closeAllFullscreenMermaidCards();
       const blocks = getEditableBlockElements();
       const card = blocks[idx];
       if (!card) return;
@@ -2888,6 +3127,7 @@
         const { svg } = await mermaid.render(`mmd-saved-${Date.now()}-${idx}`, newCode);
         card.innerHTML = `<div class="gb-mermaid-svg-wrap w-full overflow-x-auto flex justify-center">${svg}</div>`;
         enhanceMermaidSvg(card);
+        mountMermaidReadInteractive(card);
       } catch (_) {}
 
       decorateEditableBlocks();
@@ -2895,6 +3135,7 @@
     }
 
     function cancelMermaidBlock(idx) {
+      closeAllFullscreenMermaidCards();
       const blocks = getEditableBlockElements();
       const card = blocks[idx];
       if (!card) return;
@@ -2904,6 +3145,7 @@
       delete card.dataset.editingActive;
       delete card.dataset.originalHtml;
       card.classList.remove("gb-block-editing", "flex-col");
+      mountMermaidReadInteractive(card);
       decorateEditableBlocks();
     }
 
@@ -3107,6 +3349,9 @@
     }
 
     window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closeAllFullscreenMermaidCards();
+      }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         document.getElementById("gb-search-input").focus();
