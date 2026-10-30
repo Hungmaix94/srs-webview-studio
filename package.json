@@ -1,0 +1,32 @@
+{
+  "name": "srs-webview-studio",
+  "version": "1.0.0",
+  "description": "Open-source SRS Markdown-to-WebView Studio with Per-Block WYSIWYG Editor, Interactive Mermaid Flow Canvas, and Local/Static/Cloudflare publishing.",
+  "homepage": "https://srs-webview-studio-demo.phamhung-plane-ai.workers.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hungmaix94/srs-webview-studio.git"
+  },
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "bin": {
+    "srs-studio": "bin/srs_studio.py"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "templates/",
+    "examples/",
+    "README.md"
+  ],
+  "keywords": [
+    "srs",
+    "markdown",
+    "webview",
+    "mermaid",
+    "flowchart",
+    "wysiwyg",
+    "documentation"
+  ],
+  "license": "MIT"
+}
