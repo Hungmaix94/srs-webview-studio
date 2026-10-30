@@ -1,8 +1,19 @@
 # SRS WebView Studio (`srs-webview-studio`)
 
-> **Live Demo (Public on Cloudflare)**: [https://srs-webview-studio-demo.phamhung-plane-ai.workers.dev](https://srs-webview-studio-demo.phamhung-plane-ai.workers.dev)
+> - **Live Demo (Public on Cloudflare)**: [https://srs-webview-studio-demo.phamhung-plane-ai.workers.dev](https://srs-webview-studio-demo.phamhung-plane-ai.workers.dev)
+> - **Video Giới thiệu Sản phẩm (Full HD MP4)**: [Xem hoặc tải video MP4 (1440×900)](https://pub-dd118e9f58254711a5ec2f75e6bf0530.r2.dev/test-videos/srs-webview-studio-product-demo.mp4) · [File MP4 trong kho Git](./assets/srs-webview-studio-demo.mp4)
 
 Bộ thư viện và công cụ dòng lệnh mã nguồn mở giúp chuyển đổi thư mục tài liệu Markdown (`BRD`, `FSD`, `Test Spec`, `Decisions`, `Open Questions`) sang giao diện WebView trực quan. Công cụ hỗ trợ chỉnh sửa văn bản theo từng đoạn (`Per-Block WYSIWYG`) và kéo thả sơ đồ luồng hai chiều (`Interactive Flow Canvas`).
+
+## Video Giới thiệu & Trải nghiệm Nhanh
+
+[![SRS WebView Studio Product Demo](./assets/demo-showcase.gif)](https://pub-dd118e9f58254711a5ec2f75e6bf0530.r2.dev/test-videos/srs-webview-studio-product-demo.mp4)
+
+| Giao diện Đọc & Cây Danh mục Đa cấp | Kéo thả Sơ đồ Luồng (`Interactive Flow Canvas`) |
+|---|---|
+| ![Tổng quan giao diện](./assets/screen-overview.png) | ![Kéo thả sơ đồ luồng](./assets/screen-flow-canvas.png) |
+| **Soạn thảo Văn bản & Bảng biểu (`Per-Block WYSIWYG`)** | **Giao diện Tối (`Dark Mode`) Đồng bộ Sơ đồ** |
+| ![Soạn thảo bảng biểu tại chỗ](./assets/screen-wysiwyg.png) | ![Giao diện Dark Mode](./assets/screen-dark-mode.png) |
 
 ## 1. Kiến trúc tổng thể
 

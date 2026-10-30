@@ -3038,7 +3038,7 @@
         if (typeof STUDIO_CONFIG.onSaveDoc === "function") {
           await STUDIO_CONFIG.onSaveDoc({ path: currentDocPath, content: newMd, author: currentUserEmail });
           saveOk = true;
-        } else if (STUDIO_CONFIG.embeddedDocs && !WORKER_API_BASE) {
+        } else if (STUDIO_CONFIG.embeddedDocs) {
           STUDIO_CONFIG.embeddedDocs[currentDocPath] = newMd;
           saveOk = true;
         } else {
